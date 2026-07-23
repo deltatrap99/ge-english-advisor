@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Tone = "green" | "blue" | "pink";
+type View = "home" | "pathway" | "advisor" | "products" | "scripts" | "faq";
 type JourneyLevel = {
   id: string;
   label: string;
@@ -178,6 +179,8 @@ const ieltsLevels: JourneyLevel[] = [
 const products = [
   {
     id: "speakwell",
+    logo: "/speakwell-logo.png",
+    logoAlt: "SpeakWell",
     tone: "green" as Tone,
     tag: "Cambridge Young Learners",
     name: "SpeakWell",
@@ -219,6 +222,8 @@ const products = [
   },
   {
     id: "easypass",
+    logo: "/easy-pass-logo.png",
+    logoAlt: "Easy PASS",
     tone: "blue" as Tone,
     tag: "General English · A1-B2",
     name: "Easy PASS",
@@ -260,6 +265,8 @@ const products = [
   },
   {
     id: "easyielts",
+    logo: "/easy-ielts-logo.png",
+    logoAlt: "Easy IELTS",
     tone: "pink" as Tone,
     tag: "IELTS · 2.0-7.0+",
     name: "Easy IELTS",
@@ -503,10 +510,6 @@ function Brand() {
   );
 }
 
-function scrollToId(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-}
-
 function LevelExplorer({
   levels,
   tone,
@@ -585,6 +588,8 @@ function Pathway() {
               title: "Xây nền tảng",
               sub: "Beginners → A2 Flyers",
               product: "SpeakWell · 7-12 tuổi",
+              logo: "/speakwell-logo.png",
+              logoAlt: "SpeakWell",
             },
             {
               id: "general",
@@ -593,6 +598,8 @@ function Pathway() {
               title: "Phát triển toàn diện",
               sub: "A1 → B2",
               product: "Easy PASS · 12-18 tuổi",
+              logo: "/easy-pass-logo.png",
+              logoAlt: "Easy PASS",
             },
             {
               id: "ielts",
@@ -601,6 +608,8 @@ function Pathway() {
               title: "Học theo mục tiêu",
               sub: "2.0 → 7.0+",
               product: "Easy IELTS · từ 12 tuổi",
+              logo: "/easy-ielts-logo.png",
+              logoAlt: "Easy IELTS",
             },
           ].map((item, index) => (
             <button
@@ -614,7 +623,12 @@ function Pathway() {
               <small>{item.label}</small>
               <strong>{item.title}</strong>
               <p>{item.sub}</p>
-              <em>{item.product}</em>
+              <span className="route-product">
+                <span className="route-logo-frame">
+                  <img src={item.logo} alt={item.logoAlt} />
+                </span>
+                <em>{item.product}</em>
+              </span>
             </button>
           ))}
         </div>
@@ -650,7 +664,7 @@ function Pathway() {
   );
 }
 
-function Advisor() {
+function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
@@ -814,7 +828,7 @@ function Advisor() {
                   </button>
                   <button
                     className="primary-button"
-                    onClick={() => scrollToId("scripts")}
+                    onClick={() => onNavigate("scripts")}
                   >
                     Lấy kịch bản tư vấn →
                   </button>
@@ -854,8 +868,13 @@ function ProductLibrary() {
               onClick={() => setActiveId(product.id)}
               key={product.id}
             >
-              <small>{product.tag}</small>
-              <strong>{product.name}</strong>
+              <span className="product-tab-logo">
+                <img src={product.logo} alt={product.logoAlt} />
+              </span>
+              <span className="product-tab-copy">
+                <small>{product.tag}</small>
+                <strong>{product.name}</strong>
+              </span>
             </button>
           ))}
         </div>
@@ -864,9 +883,11 @@ function ProductLibrary() {
           key={active.id}
         >
           <header>
-            <div>
+            <div className="dossier-brand">
+              <span className="dossier-logo-frame">
+                <img src={active.logo} alt={active.logoAlt} />
+              </span>
               <span>{active.tag}</span>
-              <h3>{active.name}</h3>
             </div>
             <p>{active.intro}</p>
           </header>
@@ -1075,6 +1096,7 @@ function ObjectionLibrary() {
 
 export default function Page() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeView, setActiveView] = useState<View>("home");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -1089,11 +1111,32 @@ export default function Page() {
       .querySelectorAll(".reveal")
       .forEach((element) => observer.observe(element));
     return () => observer.disconnect();
+  }, [activeView]);
+
+  useEffect(() => {
+    const readView = () => {
+      const candidate = window.location.hash.replace("#", "") as View;
+      const views: View[] = [
+        "home",
+        "pathway",
+        "advisor",
+        "products",
+        "scripts",
+        "faq",
+      ];
+      setActiveView(views.includes(candidate) ? candidate : "home");
+    };
+    readView();
+    window.addEventListener("hashchange", readView);
+    return () => window.removeEventListener("hashchange", readView);
   }, []);
 
-  const go = (id: string) => {
+  const go = (view: View) => {
     setMenuOpen(false);
-    scrollToId(id);
+    setActiveView(view);
+    const nextHash = view === "home" ? window.location.pathname : `#${view}`;
+    window.history.pushState(null, "", nextHash);
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   return (
@@ -1104,7 +1147,7 @@ export default function Page() {
             className="brand-button"
             type="button"
             aria-label="Về đầu trang"
-            onClick={() => go("top")}
+            onClick={() => go("home")}
           >
             <Brand />
           </button>
@@ -1119,7 +1162,13 @@ export default function Page() {
               ["scripts", "Kịch bản"],
               ["faq", "Xử lý phản đối"],
             ].map(([id, label]) => (
-              <button onClick={() => go(id)} type="button" key={id}>
+              <button
+                className={activeView === id ? "active" : ""}
+                aria-current={activeView === id ? "page" : undefined}
+                onClick={() => go(id as View)}
+                type="button"
+                key={id}
+              >
                 {label}
               </button>
             ))}
@@ -1143,6 +1192,8 @@ export default function Page() {
         </div>
       </header>
 
+      {activeView === "home" && (
+        <>
       <section className="hero" id="top">
         <div className="hero-pattern" aria-hidden="true">
           <i />
@@ -1199,7 +1250,9 @@ export default function Page() {
             </div>
             <div className="mini-path">
               <article className="mini-card green">
-                <span className="mini-icon">🎧</span>
+                <span className="mini-product-logo">
+                  <img src="/speakwell-logo.png" alt="SpeakWell" />
+                </span>
                 <div>
                   <small>7-12 tuổi</small>
                   <strong>Cambridge YLE</strong>
@@ -1208,7 +1261,9 @@ export default function Page() {
               </article>
               <div className="path-connector">→</div>
               <article className="mini-card blue">
-                <span className="mini-icon">📖</span>
+                <span className="mini-product-logo">
+                  <img src="/easy-pass-logo.png" alt="Easy PASS" />
+                </span>
                 <div>
                   <small>12-18 tuổi</small>
                   <strong>General English</strong>
@@ -1217,7 +1272,9 @@ export default function Page() {
               </article>
               <div className="path-connector">→</div>
               <article className="mini-card pink">
-                <span className="mini-icon">🎓</span>
+                <span className="mini-product-logo">
+                  <img src="/easy-ielts-logo.png" alt="Easy IELTS" />
+                </span>
                 <div>
                   <small>Từ 12 tuổi</small>
                   <strong>IELTS</strong>
@@ -1247,7 +1304,7 @@ export default function Page() {
             ].map(([color, id, icon, title, text]) => (
               <button
                 className={`quick-card ${color}`}
-                onClick={() => go(id)}
+                onClick={() => go(id as View)}
                 type="button"
                 key={id}
               >
@@ -1262,12 +1319,16 @@ export default function Page() {
           </div>
         </div>
       </section>
+        </>
+      )}
 
-      <Pathway />
-      <Advisor />
-      <ProductLibrary />
-      <ScriptLibrary />
-      <ObjectionLibrary />
+      <div className="view-shell" key={activeView}>
+        {activeView === "pathway" && <Pathway />}
+        {activeView === "advisor" && <Advisor onNavigate={go} />}
+        {activeView === "products" && <ProductLibrary />}
+        {activeView === "scripts" && <ScriptLibrary />}
+        {activeView === "faq" && <ObjectionLibrary />}
+      </div>
 
       <footer>
         <div className="section-shell footer-inner">
@@ -1279,7 +1340,7 @@ export default function Page() {
           <button
             className="footer-button"
             type="button"
-            onClick={() => go("top")}
+            onClick={() => go("home")}
           >
             Về đầu trang ↑
           </button>
