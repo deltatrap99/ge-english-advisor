@@ -12,6 +12,25 @@ type JourneyLevel = {
   canDo: string;
   counsel: string;
 };
+type AdvisorAnswers = Record<string, string>;
+type AdvisorQuestion = {
+  key: string;
+  title: string;
+  note: string;
+  options: string[][];
+  showWhen?: (answers: AdvisorAnswers) => boolean;
+};
+type AdvisorRecommendation = {
+  product: string;
+  verdict: string;
+  tone: Tone | "neutral";
+  confidence: "Cao" | "Trung bình" | "Thấp";
+  summary: string;
+  eligibility: string[];
+  rationale: string[];
+  missing: string[];
+  actions: string[];
+};
 
 const yleLevels: JourneyLevel[] = [
   {
@@ -330,6 +349,31 @@ const scripts = [
     text: "Ở A1 Movers, con thường đã giao tiếp được trong tình huống quen thuộc nhưng câu còn ngắn và phụ thuộc gợi ý. Chặng A2 Flyers cần giúp con theo dõi hội thoại dài hơn, kể - mô tả có liên kết và đọc viết độc lập hơn. Mục tiêu không đơn thuần là làm đề khó hơn, mà là mở rộng khả năng sử dụng tiếng Anh.",
   },
   {
+    group: "Thuyết phục YLE",
+    title: "Vì sao nên xây nền Cambridge từ sớm?",
+    text: "Ở giai đoạn 7-12 tuổi, điều quan trọng không phải là cho con chạy theo một chứng chỉ thật sớm, mà là giúp con hình thành nền tảng ngôn ngữ và thói quen sử dụng tiếng Anh đúng cách. Lộ trình Cambridge YLE chia năng lực thành các cột mốc vừa sức, từ hiểu chỉ dẫn, phản xạ trong tình huống quen thuộc đến đọc, viết và diễn đạt độc lập hơn. Khi được học qua hoạt động và thực hành phù hợp lứa tuổi, con vừa có mục tiêu rõ ràng, vừa không bị cuốn vào áp lực luyện thi quá sớm.",
+  },
+  {
+    group: "Thuyết phục YLE",
+    title: "YLE mang lại gì ngoài chứng chỉ?",
+    text: "Em nghĩ giá trị lớn nhất của YLE không nằm ở tấm chứng chỉ, mà ở những việc con thực sự làm được sau mỗi chặng. Starters giúp con xử lý ngôn ngữ rất quen thuộc; Movers mở rộng khả năng giao tiếp trong đời sống; Flyers hướng tới mức A2, khi con có thể nghe, đọc, kể lại và viết những nội dung có liên kết ở mức cơ bản. Chứng chỉ là một cột mốc ghi nhận, còn năng lực sử dụng tiếng Anh và sự tự tin của con mới là tài sản theo con lâu dài.",
+  },
+  {
+    group: "Thuyết phục YLE",
+    title: "YLE tạo nền cho IELTS như thế nào?",
+    text: "Cambridge YLE không phải IELTS thu nhỏ, nhưng là nền móng rất tốt cho hành trình sau này. Khi hoàn thành đúng chặng Starters, Movers và Flyers, con từng bước xây vốn từ, ngữ pháp, khả năng nghe hiểu, đọc văn bản, viết có cấu trúc và phản xạ giao tiếp. Nhờ vậy, khi bước sang tuổi Teens, con có thể phát triển tiếp lên B1-B2 hoặc chuẩn bị IELTS mà không phải quay lại lấp quá nhiều lỗ hổng nền tảng. Mình đang đầu tư để chặng học thuật sau này thuận lợi hơn, chứ không ép con luyện IELTS sớm.",
+  },
+  {
+    group: "Thuyết phục YLE",
+    title: "YLE và sự tự tin của trẻ",
+    text: "Với trẻ nhỏ, sự tự tin được hình thành từ những trải nghiệm thành công vừa sức. Khi con hiểu được câu hỏi, diễn đạt được một ý, kể được một câu chuyện ngắn hay hoàn thành một nhiệm vụ bằng tiếng Anh, con bắt đầu nhìn ngôn ngữ như một công cụ mình có thể sử dụng. Lộ trình YLE giúp những tiến bộ nhỏ đó trở nên rõ ràng và có hệ thống. Vì vậy, mục tiêu không chỉ là điểm thi mà còn là giúp con dám nói, dám thử và duy trì hứng thú học lâu dài.",
+  },
+  {
+    group: "Thuyết phục YLE",
+    title: "YLE mở rộng cơ hội tương lai",
+    text: "Ở độ tuổi này, mình chưa cần quyết định trước con sẽ du học hay làm công việc nào. Điều đáng đầu tư là năng lực giúp con có nhiều lựa chọn hơn trong tương lai. Một nền tiếng Anh vững từ YLE giúp con tiếp cận học liệu quốc tế phù hợp lứa tuổi, giao tiếp với môi trường rộng hơn và chuyển tiếp thuận lợi sang tiếng Anh học thuật khi cần. YLE không tự tạo ra mọi cơ hội, nhưng giúp con có nền tảng để nắm bắt cơ hội tốt hơn khi các mục tiêu học tập dần rõ ràng.",
+  },
+  {
     group: "Gợi ý sản phẩm",
     title: "Gợi ý SpeakWell",
     text: "Với độ tuổi 7-12 và nhu cầu hiện tại, em đề xuất gia đình ưu tiên SpeakWell để con phát triển đồng đều Nghe, Nói, Đọc, Viết theo lộ trình Cambridge. Chương trình kết hợp lớp cùng giáo viên, học liệu tương tác, LMS và luyện nói; chứng chỉ là cột mốc ghi nhận, còn năng lực sử dụng tiếng Anh mới là mục tiêu chính.",
@@ -358,6 +402,36 @@ const scripts = [
     group: "IELTS & đại học",
     title: "Vai trò của IELTS với đại học",
     text: "IELTS có thể mở rộng lựa chọn học tập khi được đặt trong kế hoạch đại học cụ thể: chuẩn đầu vào, phương án xét tuyển, học chương trình quốc tế hoặc chuẩn bị năng lực học thuật. Tuy nhiên, chính sách từng trường và từng năm có thể thay đổi, nên mình sẽ xác minh yêu cầu mục tiêu trước rồi mới xác định band và thời điểm thi.",
+  },
+  {
+    group: "Thuyết phục IELTS",
+    title: "Vì sao nên chuẩn bị IELTS từ sớm?",
+    text: "Chuẩn bị IELTS từ sớm không có nghĩa là luyện đề càng sớm càng tốt. Khi con từ 12 tuổi trở lên, có nền tảng phù hợp và mục tiêu tương đối rõ, việc bắt đầu đúng thời điểm giúp con có đủ quỹ thời gian để phát triển bốn kỹ năng, sửa điểm yếu và hình thành thói quen tự học thay vì chạy nước rút trước hạn xét tuyển. Em muốn mình xác định band hiện tại, band mục tiêu và thời điểm cần chứng chỉ trước, rồi mới thiết kế một lộ trình vừa sức và bền vững cho con.",
+  },
+  {
+    group: "Thuyết phục IELTS",
+    title: "IELTS trang bị tư duy học thuật",
+    text: "Nếu được học đúng phương pháp, IELTS không chỉ là luyện dạng đề. Quá trình học giúp con tập đọc để xác định luận điểm và bằng chứng, nghe để chọn lọc thông tin, viết theo cấu trúc logic và trình bày quan điểm có lý do. Đây đều là những năng lực quan trọng khi học ở bậc đại học. Tuy nhiên, giá trị này chỉ hình thành khi con được phát triển ngôn ngữ, tư duy và khả năng tự đánh giá song song, chứ không chỉ ghi nhớ mẹo làm bài.",
+  },
+  {
+    group: "Thuyết phục IELTS",
+    title: "IELTS hỗ trợ kế hoạch du học",
+    text: "Với kế hoạch du học hoặc học chương trình quốc tế, IELTS có thể là một điều kiện ngôn ngữ quan trọng trong hồ sơ, đồng thời giúp con chuẩn bị cho việc đọc tài liệu, nghe giảng, viết bài và trao đổi trong môi trường học thuật. Mỗi trường, chương trình và quốc gia có yêu cầu khác nhau, nên em sẽ cùng gia đình kiểm tra đúng chuẩn đầu vào trước khi chốt band mục tiêu. Như vậy, con học vì một đích đến cụ thể và tránh đầu tư theo một mốc điểm chung chung.",
+  },
+  {
+    group: "Thuyết phục IELTS",
+    title: "IELTS và cơ hội nghề nghiệp tương lai",
+    text: "Một band IELTS tốt có thể giúp hồ sơ của con có thêm dữ liệu chứng minh năng lực tiếng Anh ở những bối cảnh phù hợp. Nhưng về dài hạn, điều có giá trị hơn là khả năng đọc tài liệu chuyên môn, viết và thuyết trình rõ ràng, trao đổi với đồng nghiệp hoặc đối tác quốc tế. Vì vậy, mình không nên chỉ hỏi con cần bao nhiêu điểm, mà cần nhìn xem lộ trình có thực sự giúp con sử dụng tiếng Anh cho học tập và công việc sau này hay không.",
+  },
+  {
+    group: "Thuyết phục IELTS",
+    title: "IELTS và năng lực công dân toàn cầu",
+    text: "Một chứng chỉ không tự biến con thành công dân toàn cầu. Điều tạo ra năng lực hội nhập là khả năng tiếp cận tri thức từ nhiều nguồn, giao tiếp với người có nền tảng khác nhau và diễn đạt quan điểm một cách rõ ràng, có căn cứ. IELTS có thể là một lộ trình rèn luyện các năng lực đó nếu con học để sử dụng ngôn ngữ thật, không chỉ để vượt qua kỳ thi. Khi ấy, điểm số vừa là cột mốc, vừa phản ánh một phần năng lực sẵn sàng cho môi trường rộng hơn.",
+  },
+  {
+    group: "Thuyết phục IELTS",
+    title: "IELTS mở rộng quyền lựa chọn",
+    text: "Gia đình chưa nhất thiết phải quyết định ngay con sẽ học trường nào hay làm nghề gì. Lợi ích của việc chuẩn bị có kế hoạch là đến thời điểm cần lựa chọn, con không bị giới hạn chỉ vì thiếu năng lực tiếng Anh hoặc không kịp hoàn thành điều kiện chứng chỉ. IELTS không bảo đảm một suất học hay một công việc, nhưng có thể mở thêm phương án về xét tuyển, chương trình quốc tế, du học và môi trường nghề nghiệp. Mục tiêu của mình là tạo thêm quyền lựa chọn cho con, không chạy theo chứng chỉ vì xu hướng.",
   },
   {
     group: "Bước tiếp theo",
@@ -446,52 +520,497 @@ const objections = [
   },
 ];
 
-const advisorQuestions = [
+const isSpeakWellLevel = (level?: string) =>
+  ["pre-a1", "starters", "movers", "flyers"].includes(level || "");
+
+const hasPotentialProductRoute = (answers: AdvisorAnswers) => {
+  const { age, level, goal } = answers;
+  if (age === "7-11") {
+    return (
+      ["cambridge", "general", "communication"].includes(goal) &&
+      (isSpeakWellLevel(level) || level === "unknown")
+    );
+  }
+  if (age === "12") {
+    if (goal === "cambridge") {
+      return isSpeakWellLevel(level) || level === "unknown";
+    }
+    if (["general", "communication"].includes(goal)) {
+      return level !== "b2-plus";
+    }
+    return goal === "ielts";
+  }
+  if (age === "13-18") {
+    return (
+      goal === "ielts" ||
+      (["general", "communication"].includes(goal) && level !== "b2-plus")
+    );
+  }
+  return age === "over-18" && goal === "ielts";
+};
+
+const advisorQuestions: AdvisorQuestion[] = [
   {
     key: "age",
     title: "Học sinh đang ở độ tuổi nào?",
-    note: "Độ tuổi giúp xác định giai đoạn phát triển, nhưng chưa đủ để kết luận sản phẩm.",
+    note: "Đây là điều kiện sàng lọc bắt buộc. Hệ thống sẽ không đề xuất sản phẩm nằm ngoài độ tuổi.",
     options: [
+      ["under-7", "Dưới 7 tuổi", "Chưa thuộc độ tuổi của 3 chương trình"],
       ["7-11", "7-11 tuổi", "Tiểu học"],
       ["12", "12 tuổi", "Giai đoạn chuyển tiếp"],
-      ["13-15", "13-15 tuổi", "THCS"],
-      ["16-18", "16-18 tuổi", "THPT"],
+      ["13-18", "13-18 tuổi", "THCS - THPT"],
+      ["over-18", "Trên 18 tuổi", "Người học trưởng thành"],
     ],
   },
   {
     key: "level",
-    title: "Nền tảng gần nhất của học sinh?",
-    note: "Ưu tiên kết quả đánh giá hoặc chứng chỉ gần nhất; nếu chưa rõ, chọn “Chưa xác định”.",
+    title: "Trình độ gần nhất của học sinh?",
+    note: "Chọn mức gần nhất; ở câu tiếp theo, hãy cho biết căn cứ của đánh giá này.",
     options: [
-      ["yle", "Beginners - Movers", "Đang trong chặng nền tảng YLE"],
-      ["a2", "Flyers / A2", "Đã có nền tảng sử dụng độc lập hơn"],
-      ["b1", "B1 trở lên", "Có thể bắt đầu mục tiêu học thuật"],
-      ["ielts", "Đã có band IELTS", "Có kết quả đánh giá tương đối rõ"],
+      ["pre-a1", "Beginners / Pre-A1", "Mới làm quen tiếng Anh"],
+      ["starters", "Starters / Pre-A1", "Có nền tảng rất cơ bản"],
+      ["movers", "Movers / A1", "Giao tiếp tình huống quen thuộc"],
+      ["flyers", "Flyers / A2", "Sử dụng độc lập hơn"],
+      ["b1", "B1", "Đã tương đối độc lập"],
+      ["b2-plus", "B2 trở lên", "Nền tảng khá đến nâng cao"],
+      ["ielts-band", "Đã có band IELTS", "Sẽ bổ sung band nếu chọn IELTS"],
       ["unknown", "Chưa xác định", "Cần đánh giá đầu vào"],
+    ],
+  },
+  {
+    key: "evidence",
+    title: "Căn cứ nào xác định trình độ trên?",
+    note: "Độ tin cậy của dữ liệu quyết định mức độ chắc chắn của đề xuất.",
+    options: [
+      ["certificate", "Chứng chỉ chính thức", "Cambridge, IELTS hoặc chứng chỉ tương đương"],
+      ["recent-test", "Bài đánh giá gần đây", "Thi thử hoặc placement test có kết quả"],
+      ["school", "Kết quả học ở trường", "Có dữ liệu nhưng chưa phản ánh đủ 4 kỹ năng"],
+      ["self-report", "Phụ huynh/học sinh tự đánh giá", "Cần kiểm chứng trước khi xếp lớp"],
+      ["none", "Chưa có căn cứ", "Bắt buộc đánh giá đầu vào"],
     ],
   },
   {
     key: "goal",
     title: "Mục tiêu ưu tiên của gia đình?",
-    note: "Nếu có nhiều mục tiêu, chọn mục tiêu quan trọng nhất trong 6-12 tháng tới.",
+    note: "Chọn mục tiêu sử dụng tiếng Anh quan trọng nhất, không chọn theo tên khóa học.",
     options: [
-      ["cambridge", "Cambridge YLE", "Xây nền và có cột mốc chứng chỉ"],
-      ["general", "Tiếng Anh tổng quát", "Bốn kỹ năng, học trên trường, giao tiếp"],
-      ["ielts", "IELTS / đại học", "Có band hoặc kế hoạch sử dụng rõ"],
-      ["unclear", "Chưa rõ mục tiêu", "Cần làm rõ nhu cầu trước"],
+      ["cambridge", "Cambridge YLE", "Xây nền và hướng tới Starters/Movers/Flyers"],
+      ["general", "Tiếng Anh tổng quát", "Bốn kỹ năng và hỗ trợ việc học ở trường"],
+      ["communication", "Giao tiếp và phản xạ", "Ưu tiên khả năng sử dụng thực tế"],
+      ["ielts", "IELTS với band mục tiêu", "Có nhu cầu sử dụng chứng chỉ cụ thể"],
+      ["university", "Chuẩn bị cho đại học", "Chưa rõ có thực sự cần IELTS hay không"],
+      ["unclear", "Chưa xác định", "Cần khai thác nhu cầu trước khi chọn khóa"],
+    ],
+  },
+  {
+    key: "cambridgeTarget",
+    title: "Gia đình hướng tới cấp độ Cambridge nào?",
+    note: "Cấp độ đích cần phù hợp với trình độ hiện tại và thời gian chuẩn bị.",
+    showWhen: (answers) =>
+      answers.goal === "cambridge" &&
+      ["7-11", "12"].includes(answers.age) &&
+      (isSpeakWellLevel(answers.level) || answers.level === "unknown"),
+    options: [
+      ["starters", "Starters", "Mốc Pre-A1"],
+      ["movers", "Movers", "Mốc A1"],
+      ["flyers", "Flyers", "Mốc A2"],
+      ["not-sure", "Chưa xác định", "Cần test và tư vấn cấp độ phù hợp"],
+    ],
+  },
+  {
+    key: "ieltsCurrent",
+    title: "Band IELTS hiện tại gần nhất?",
+    note: "Nếu chưa thi trong điều kiện đủ tin cậy, chọn “Chưa có band”.",
+    showWhen: (answers) =>
+      answers.goal === "ielts" &&
+      ["12", "13-18", "over-18"].includes(answers.age),
+    options: [
+      ["none", "Chưa có band", "Cần placement test"],
+      ["2-3.5", "2.0-3.5", "Introduction / Foundation"],
+      ["4-4.5", "4.0-4.5", "Preparation"],
+      ["5-5.5", "5.0-5.5", "Intensive"],
+      ["6-plus", "6.0 trở lên", "Master / mục tiêu nâng cao"],
+    ],
+  },
+  {
+    key: "ieltsTarget",
+    title: "Band IELTS mục tiêu?",
+    note: "Band mục tiêu phải gắn với yêu cầu sử dụng thực tế, không chỉ là một con số mong muốn.",
+    showWhen: (answers) =>
+      answers.goal === "ielts" &&
+      ["12", "13-18", "over-18"].includes(answers.age),
+    options: [
+      ["4.5", "4.5", "Mục tiêu nền tảng"],
+      ["5.5", "5.5", "Mục tiêu trung cấp"],
+      ["6.5", "6.5", "Mốc phổ biến cho xét tuyển/học thuật"],
+      ["7-plus", "7.0+", "Mục tiêu nâng cao"],
+      ["not-sure", "Chưa xác định", "Cần đối chiếu yêu cầu trường/chương trình"],
+    ],
+  },
+  {
+    key: "weakestSkill",
+    title: "Kỹ năng đang là điểm nghẽn lớn nhất?",
+    note: "Điểm tổng không cho biết đầy đủ nơi cần ưu tiên thời lượng và phản hồi.",
+    showWhen: (answers) =>
+      answers.goal === "ielts" &&
+      ["12", "13-18", "over-18"].includes(answers.age),
+    options: [
+      ["listening", "Listening", "Nghe hiểu và xử lý thông tin"],
+      ["reading", "Reading", "Tốc độ và độ chính xác"],
+      ["writing", "Writing", "Lập luận và kiểm soát ngôn ngữ"],
+      ["speaking", "Speaking", "Độ trôi chảy và phát triển ý"],
+      ["unknown", "Chưa xác định", "Cần chẩn đoán theo từng kỹ năng"],
     ],
   },
   {
     key: "timeline",
-    title: "Mức độ rõ ràng của kế hoạch?",
-    note: "Một đề xuất tốt cần phù hợp cả năng lực, mục tiêu và khả năng duy trì.",
+    title: "Gia đình cần đạt mục tiêu vào thời điểm nào?",
+    note: "Thời hạn giúp đánh giá tính khả thi và thiết kế mốc trung gian.",
+    showWhen: hasPotentialProductRoute,
     options: [
-      ["clear", "Đã rõ mốc thời gian", "Có thể xác định đầu ra và tiến độ"],
-      ["flexible", "Có mục tiêu, thời gian linh hoạt", "Ưu tiên phát triển bền vững"],
-      ["unknown", "Chưa đủ dữ liệu", "Nên đánh giá và tư vấn sâu hơn"],
+      ["under-6", "Dưới 6 tháng", "Cần kiểm tra kỹ khoảng cách đầu vào - đầu ra"],
+      ["6-12", "6-12 tháng", "Có thể thiết kế mốc theo giai đoạn"],
+      ["over-12", "Trên 12 tháng", "Ưu tiên phát triển bền vững"],
+      ["no-deadline", "Chưa có thời hạn", "Cần thống nhất một mốc đánh giá gần"],
+    ],
+  },
+  {
+    key: "capacity",
+    title: "Mức thời gian học sinh có thể duy trì mỗi tuần?",
+    note: "Tính khả thi phụ thuộc cả giờ học với giáo viên và thời gian tự luyện.",
+    showWhen: hasPotentialProductRoute,
+    options: [
+      ["under-2", "Dưới 2 giờ/tuần", "Cần thu hẹp mục tiêu hoặc kéo dài thời gian"],
+      ["2-4", "2-4 giờ/tuần", "Phù hợp lộ trình ổn định nếu duy trì đều"],
+      ["over-4", "Trên 4 giờ/tuần", "Có dư địa cho mục tiêu chuyên sâu"],
+      ["unknown", "Chưa xác định", "Cần chốt lịch thực tế với gia đình"],
     ],
   },
 ];
+
+const advisorOptionLabels = Object.fromEntries(
+  advisorQuestions.flatMap((question) =>
+    question.options.map(([value, label]) => [
+      `${question.key}:${value}`,
+      label,
+    ]),
+  ),
+);
+
+const optionLabel = (key: string, value?: string) =>
+  value ? advisorOptionLabels[`${key}:${value}`] || value : "Chưa có dữ liệu";
+
+function buildAdvisorRecommendation(
+  answers: AdvisorAnswers,
+): AdvisorRecommendation {
+  const { age, level, evidence, goal, timeline, capacity } = answers;
+  const lowEvidence = ["self-report", "none"].includes(evidence);
+  const levelUnknown = level === "unknown";
+  const noTimeline = timeline === "no-deadline";
+  const lowCapacity = capacity === "under-2";
+  const commonMissing: string[] = [];
+
+  if (levelUnknown || evidence === "none") {
+    commonMissing.push("Trình độ đầu vào có độ tin cậy đủ để xếp lớp.");
+  } else if (lowEvidence) {
+    commonMissing.push("Kết quả đánh giá đầu vào để kiểm chứng nhận định của gia đình.");
+  }
+  if (noTimeline) {
+    commonMissing.push("Mốc thời gian cụ thể để thiết kế tiến độ và điểm kiểm tra.");
+  }
+  if (capacity === "unknown") {
+    commonMissing.push("Khung thời gian học và tự luyện có thể duy trì mỗi tuần.");
+  }
+
+  const confidence: AdvisorRecommendation["confidence"] =
+    levelUnknown || evidence === "none"
+      ? "Thấp"
+      : lowEvidence || noTimeline || capacity === "unknown"
+        ? "Trung bình"
+        : "Cao";
+
+  const noMatch = (
+    verdict: string,
+    summary: string,
+    rationale: string[],
+    actions: string[],
+    missing: string[] = commonMissing,
+  ): AdvisorRecommendation => ({
+    product: "Chưa nên chốt sản phẩm",
+    verdict,
+    tone: "neutral",
+    confidence: "Thấp",
+    summary,
+    eligibility: [
+      `Độ tuổi: ${optionLabel("age", age)}.`,
+      `Trình độ khai báo: ${optionLabel("level", level)}.`,
+      `Mục tiêu: ${optionLabel("goal", goal)}.`,
+    ],
+    rationale,
+    missing,
+    actions,
+  });
+
+  if (age === "under-7") {
+    return noMatch(
+      "Ngoài phạm vi độ tuổi",
+      "Ba chương trình trong công cụ hiện chưa có lựa chọn phù hợp cho học sinh dưới 7 tuổi.",
+      [
+        "SpeakWell chỉ áp dụng từ 7-12 tuổi.",
+        "Easy PASS áp dụng từ 12-18 tuổi; Easy IELTS áp dụng từ 12 tuổi.",
+      ],
+      [
+        "Không cố gắng quy đổi sang một sản phẩm đang có.",
+        "Chuyển AS để kiểm tra lựa chọn dành cho nhóm tuổi nhỏ hơn.",
+      ],
+    );
+  }
+
+  if (goal === "unclear" || goal === "university") {
+    return noMatch(
+      "Cần làm rõ mục tiêu",
+      goal === "university"
+        ? "Chuẩn bị cho đại học chưa đồng nghĩa phải học IELTS. Cần xác định yêu cầu đầu vào của trường hoặc chương trình trước."
+        : "Chưa có mục tiêu sử dụng tiếng Anh đủ rõ để lựa chọn lộ trình có trách nhiệm.",
+      [
+        "Tên chứng chỉ không nên được dùng thay cho nhu cầu học tập thực tế.",
+        "Sản phẩm chỉ nên được đề xuất sau khi biết mục tiêu ưu tiên và cách đo đầu ra.",
+      ],
+      [
+        "Hỏi trường/ngành/chương trình dự kiến và yêu cầu tiếng Anh tương ứng.",
+        "Nếu chưa có yêu cầu chứng chỉ, làm rõ nhu cầu General English, giao tiếp hay Cambridge.",
+      ],
+      [
+        "Mục tiêu sử dụng tiếng Anh cụ thể.",
+        "Thời điểm cần đạt và tiêu chí đầu ra có thể quan sát.",
+      ],
+    );
+  }
+
+  if (age === "7-11") {
+    if (goal === "ielts") {
+      return noMatch(
+        "Không phù hợp theo độ tuổi",
+        "Không đề xuất Easy IELTS cho học sinh dưới 12 tuổi, kể cả khi gia đình mong muốn chuẩn bị IELTS sớm.",
+        [
+          "Easy IELTS chỉ áp dụng từ 12 tuổi.",
+          "Ở giai đoạn này cần ưu tiên năng lực ngôn ngữ phù hợp lứa tuổi hơn là kỹ thuật luyện thi học thuật.",
+        ],
+        [
+          "Làm rõ nhu cầu đằng sau mục tiêu IELTS: nền tảng 4 kỹ năng, giao tiếp hay cột mốc Cambridge.",
+          isSpeakWellLevel(level)
+            ? "Có thể đánh giá đầu vào để xem xét SpeakWell nếu gia đình đồng thuận mục tiêu nền tảng/Cambridge."
+            : "Chuyển AS vì trình độ khai báo không nằm trong lộ trình SpeakWell.",
+        ],
+      );
+    }
+    if (!isSpeakWellLevel(level) && !levelUnknown) {
+      return noMatch(
+        "Vượt phạm vi trình độ",
+        "Học sinh đúng độ tuổi SpeakWell nhưng trình độ khai báo đã vượt lộ trình Beginners-Flyers/A2.",
+        [
+          "SpeakWell không nên được đề xuất chỉ vì học sinh còn trong độ tuổi 7-12.",
+          "Easy PASS và Easy IELTS lại chưa phù hợp vì học sinh dưới 12 tuổi.",
+        ],
+        [
+          "Kiểm chứng trình độ bằng bài đánh giá đủ 4 kỹ năng.",
+          "Nếu kết quả vẫn trên A2, chuyển AS để thiết kế phương án phù hợp.",
+        ],
+      );
+    }
+    return {
+      product: "SpeakWell",
+      verdict: lowEvidence || levelUnknown ? "Đề xuất có điều kiện" : "Phù hợp sơ bộ",
+      tone: "green",
+      confidence,
+      summary:
+        "Học sinh nằm trong độ tuổi 7-12 và mục tiêu phù hợp với lộ trình xây nền Beginners-Flyers/A2.",
+      eligibility: [
+        "Đạt điều kiện tuổi của SpeakWell: 7-12 tuổi.",
+        `Trình độ khai báo: ${optionLabel("level", level)}.`,
+        `Mục tiêu: ${optionLabel("goal", goal)}.`,
+      ],
+      rationale: [
+        goal === "cambridge"
+          ? `Gia đình đã xác định cột mốc ${optionLabel("cambridgeTarget", answers.cambridgeTarget)}.`
+          : "Gia đình ưu tiên năng lực tổng quát/giao tiếp ở độ tuổi tiểu học.",
+        "SpeakWell phát triển đồng thời 4 kỹ năng và định hướng Cambridge YLE theo lộ trình.",
+      ],
+      missing: commonMissing,
+      actions: [
+        "Đánh giá đầu vào để chọn đúng Beginners/Starters/Movers/Flyers.",
+        "Thống nhất 1-2 năng lực có thể quan sát trong 8-12 tuần đầu.",
+        lowCapacity
+          ? "Điều chỉnh mục tiêu vì quỹ thời gian dưới 2 giờ/tuần."
+          : "Chốt lịch học và mức tự luyện có thể duy trì đều.",
+      ],
+    };
+  }
+
+  if (age === "over-18" && goal !== "ielts") {
+    return noMatch(
+      "Không thuộc danh mục 3 sản phẩm",
+      "SpeakWell và Easy PASS đều không phù hợp độ tuổi. Với mục tiêu giao tiếp hoặc General English, cần chuyển sang giải pháp dành cho người lớn.",
+      [
+        "SpeakWell giới hạn 7-12 tuổi.",
+        "Easy PASS giới hạn 12-18 tuổi.",
+      ],
+      [
+        "Chuyển AS hoặc kiểm tra Easy SPEAK for Adults.",
+        "Không chuyển hướng sang Easy IELTS nếu người học không có nhu cầu chứng chỉ.",
+      ],
+    );
+  }
+
+  if (goal === "cambridge" && age !== "12") {
+    return noMatch(
+      "Quá tuổi của SpeakWell",
+      "Không đề xuất SpeakWell cho học sinh trên 12 tuổi, dù gia đình chọn mục tiêu Cambridge.",
+      [
+        "Độ tuổi là điều kiện loại trừ bắt buộc trước khi xét mục tiêu.",
+        "Danh mục hiện không có khóa Cambridge YLE dành cho nhóm trên 12 tuổi.",
+      ],
+      [
+        "Làm rõ gia đình cần chứng chỉ Cambridge cụ thể hay chỉ cần phát triển tiếng Anh tổng quát.",
+        age === "13-18"
+          ? "Nếu mục tiêu là General English, đánh giá đầu vào để xem xét Easy PASS; nếu là IELTS, xác định band và thời hạn."
+          : "Chuyển AS để tìm giải pháp phù hợp độ tuổi.",
+      ],
+    );
+  }
+
+  if (goal === "ielts") {
+    const ieltsMissing = [...commonMissing];
+    if (answers.ieltsCurrent === "none") {
+      ieltsMissing.push("Band đầu vào theo từng kỹ năng trong điều kiện đánh giá tin cậy.");
+    }
+    if (answers.ieltsTarget === "not-sure") {
+      ieltsMissing.push("Band mục tiêu gắn với yêu cầu trường/chương trình.");
+    }
+    if (answers.weakestSkill === "unknown") {
+      ieltsMissing.push("Kỹ năng thấp nhất và nguyên nhân điểm nghẽn.");
+    }
+    const conditional =
+      ieltsMissing.length > 0 || lowCapacity || timeline === "under-6";
+    return {
+      product: "Easy IELTS",
+      verdict: conditional ? "Đề xuất có điều kiện" : "Phù hợp sơ bộ",
+      tone: "pink",
+      confidence:
+        answers.ieltsCurrent === "none" || answers.ieltsTarget === "not-sure"
+          ? "Thấp"
+          : confidence,
+      summary:
+        "Người học từ 12 tuổi và có mục tiêu IELTS cụ thể; cần xếp đúng chặng theo band đầu vào, band đích và quỹ thời gian.",
+      eligibility: [
+        "Đạt điều kiện tuổi của Easy IELTS: từ 12 tuổi.",
+        `Band hiện tại: ${optionLabel("ieltsCurrent", answers.ieltsCurrent)}.`,
+        `Band mục tiêu: ${optionLabel("ieltsTarget", answers.ieltsTarget)}.`,
+      ],
+      rationale: [
+        `Kỹ năng cần ưu tiên: ${optionLabel("weakestSkill", answers.weakestSkill)}.`,
+        `Thời hạn: ${optionLabel("timeline", timeline)}; khả năng duy trì: ${optionLabel("capacity", capacity)}.`,
+        "Easy IELTS có lộ trình từ 2.0-2.5 đến 7.0+, không mặc định yêu cầu B1 mới được bắt đầu.",
+      ],
+      missing: ieltsMissing,
+      actions: [
+        "Thực hiện hoặc xác minh bài đánh giá đầu vào theo 4 kỹ năng.",
+        "Đối chiếu khoảng cách band với thời hạn và số giờ học thực tế.",
+        lowCapacity
+          ? "Không cam kết tăng band nhanh khi thời lượng dưới 2 giờ/tuần; cần điều chỉnh mục tiêu hoặc thời gian."
+          : "Xếp chặng học và đặt mốc kiểm tra tiến bộ theo từng kỹ năng.",
+      ],
+    };
+  }
+
+  if (age === "12" && goal === "cambridge") {
+    if (!isSpeakWellLevel(level) && !levelUnknown) {
+      return noMatch(
+        "Không phù hợp theo trình độ",
+        "Học sinh 12 tuổi còn trong điều kiện tuổi SpeakWell, nhưng trình độ khai báo đã vượt Flyers/A2.",
+        [
+          "Không lựa chọn SpeakWell chỉ vì còn đúng tuổi.",
+          "Cần xác định lại mục tiêu sau YLE và năng lực thực tế.",
+        ],
+        [
+          "Đánh giá đầu vào và làm rõ mục tiêu General English hay IELTS.",
+          "Cân nhắc Easy PASS hoặc Easy IELTS theo kết quả đánh giá và nhu cầu thực.",
+        ],
+      );
+    }
+    return {
+      product: "SpeakWell",
+      verdict: "Đề xuất có điều kiện",
+      tone: "green",
+      confidence,
+      summary:
+        "Học sinh 12 tuổi vẫn thuộc độ tuổi SpeakWell và đang theo mục tiêu Cambridge; đây là điểm chuyển tiếp cần xác định kỹ cấp độ đích.",
+      eligibility: [
+        "Đạt điều kiện tuổi tối đa của SpeakWell: 12 tuổi.",
+        `Trình độ khai báo: ${optionLabel("level", level)}.`,
+        `Cấp độ Cambridge mục tiêu: ${optionLabel("cambridgeTarget", answers.cambridgeTarget)}.`,
+      ],
+      rationale: [
+        "Mục tiêu Cambridge YLE phù hợp với lộ trình Beginners-Flyers/A2.",
+        "Tuổi 12 là giao điểm giữa SpeakWell và Easy PASS nên mục tiêu, không chỉ tuổi, quyết định hướng đi.",
+      ],
+      missing: commonMissing,
+      actions: [
+        "Đánh giá đầu vào và kiểm tra tính khả thi của cấp độ Cambridge mục tiêu.",
+        "Thống nhất trước hướng chuyển tiếp sau Flyers/A2: General English hay IELTS.",
+      ],
+    };
+  }
+
+  if (goal === "general" || goal === "communication") {
+    if (level === "b2-plus") {
+      return noMatch(
+        "Cần đánh giá ngoài khung",
+        "Easy PASS phát triển theo lộ trình A1-B2; học sinh khai báo B2 trở lên nên cần kiểm chứng nhu cầu và khoảng trống năng lực trước.",
+        [
+          "Không nên xếp vào Easy PASS chỉ dựa trên mục tiêu General English.",
+          "Trình độ trên B2 có thể cần chương trình chuyên sâu hoặc mục tiêu khác.",
+        ],
+        [
+          "Đánh giá đủ 4 kỹ năng và xác định điểm nghẽn cụ thể.",
+          "Chuyển AS nếu kết quả xác nhận vượt khung B2.",
+        ],
+      );
+    }
+    return {
+      product: "Easy PASS",
+      verdict: lowEvidence || levelUnknown ? "Đề xuất có điều kiện" : "Phù hợp sơ bộ",
+      tone: "blue",
+      confidence,
+      summary:
+        "Học sinh 12-18 tuổi, mục tiêu là General English hoặc giao tiếp và trình độ nằm trong lộ trình A1-B2.",
+      eligibility: [
+        "Đạt điều kiện tuổi của Easy PASS: 12-18 tuổi.",
+        `Trình độ khai báo: ${optionLabel("level", level)}.`,
+        `Mục tiêu: ${optionLabel("goal", goal)}.`,
+      ],
+      rationale: [
+        "Easy PASS phát triển đồng đều 4 kỹ năng và tạo cầu nối từ A1 đến B2 cho tuổi Teens.",
+        `Khả năng duy trì: ${optionLabel("capacity", capacity)}.`,
+      ],
+      missing: commonMissing,
+      actions: [
+        "Đánh giá CEFR và xác định kỹ năng nghẽn trước khi xếp lớp.",
+        "Chọn 1:1 hoặc lớp nhóm theo nhu cầu hỗ trợ và khả năng học độc lập.",
+        lowCapacity
+          ? "Thu hẹp mục tiêu hoặc kéo dài thời gian vì quỹ học dưới 2 giờ/tuần."
+          : "Thống nhất chỉ báo tiến bộ cho 8-12 tuần đầu.",
+      ],
+    };
+  }
+
+  return noMatch(
+    "Cần tư vấn sâu hơn",
+    "Dữ liệu hiện tại chưa tạo thành một lộ trình sản phẩm nhất quán.",
+    ["Tuổi, trình độ và mục tiêu cần được đọc đồng thời theo nguyên tắc điều kiện trước, sản phẩm sau."],
+    ["Chuyển AS để rà lại hồ sơ và thực hiện đánh giá đầu vào."],
+  );
+}
 
 function Brand() {
   return (
@@ -666,57 +1185,20 @@ function Pathway() {
 
 function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<AdvisorAnswers>({});
   const [done, setDone] = useState(false);
-  const question = advisorQuestions[step];
+  const visibleQuestions = useMemo(
+    () =>
+      advisorQuestions.filter(
+        (item) => !item.showWhen || item.showWhen(answers),
+      ),
+    [answers],
+  );
+  const question = visibleQuestions[step];
 
   const recommendation = useMemo(() => {
     if (!done) return null;
-    const { age, level, goal, timeline } = answers;
-    if (level === "unknown" || goal === "unclear" || timeline === "unknown") {
-      return {
-        product: "Chưa nên chốt sản phẩm",
-        reason:
-          "Hồ sơ còn thiếu dữ liệu về trình độ, mục tiêu hoặc mốc thời gian. Bước có trách nhiệm nhất là đánh giá đầu vào và làm rõ ưu tiên.",
-        action:
-          "Mời học sinh đánh giá đầu vào; hỏi thêm điểm mạnh/yếu theo bốn kỹ năng và mục tiêu 6-12 tháng.",
-        tone: "neutral",
-      };
-    }
-    if (
-      goal === "cambridge" ||
-      (age === "7-11" && (level === "yle" || level === "a2"))
-    ) {
-      return {
-        product: "SpeakWell",
-        reason:
-          "Học sinh thuộc nhóm 7-12 tuổi và cần xây nền Cambridge YLE, phát triển đồng đều bốn kỹ năng trước khi chuyển sang mục tiêu học thuật.",
-        action:
-          "Xác định đúng Beginners/Starters/Movers/Flyers và thống nhất năng lực mục tiêu có thể quan sát.",
-        tone: "green",
-      };
-    }
-    if (
-      goal === "general" ||
-      (age !== "7-11" && (level === "yle" || level === "a2"))
-    ) {
-      return {
-        product: "Easy PASS",
-        reason:
-          "Mục tiêu trọng tâm là tiếng Anh tổng quát cho giai đoạn Teens, hỗ trợ bốn kỹ năng và tạo cầu nối từ A1/A2 lên B1/B2.",
-        action:
-          "Đánh giá mức CEFR, xác định kỹ năng nghẽn và chọn hình thức lớp phù hợp khả năng duy trì.",
-        tone: "blue",
-      };
-    }
-    return {
-      product: "Easy IELTS",
-      reason:
-        "Học sinh có nền tảng và mục tiêu IELTS/đại học tương đối rõ. Lộ trình nên được thiết kế theo band hiện tại, band mục tiêu và quỹ thời gian.",
-      action:
-        "Xác minh kết quả đầu vào, kỹ năng thấp nhất và thời điểm cần chứng chỉ trước khi chọn chặng học.",
-      tone: "pink",
-    };
+    return buildAdvisorRecommendation(answers);
   }, [answers, done]);
 
   const reset = () => {
@@ -730,10 +1212,10 @@ function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
       <div className="section-shell">
         <div className="section-heading centered-heading reveal">
           <span className="section-kicker">Trợ lý tư vấn nhanh</span>
-          <h2>Gợi ý hướng tư vấn trong khoảng 60 giây</h2>
+          <h2>Phân tuyến có điều kiện, không gợi ý theo cảm tính</h2>
           <p>
-            Kết quả luôn đi kèm lý do đề xuất và bước cần kiểm tra thêm, không
-            thay thế đánh giá đầu vào.
+            Bộ câu hỏi ưu tiên độ tuổi, trình độ, mục tiêu và tính khả thi. Kết
+            quả chỉ là định hướng sơ bộ, không thay thế đánh giá đầu vào.
           </p>
         </div>
         <div className="advisor-card reveal">
@@ -742,16 +1224,16 @@ function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
               <div className="advisor-progress">
                 <div className="progress-meta">
                   <span>
-                    Câu {step + 1}/{advisorQuestions.length}
+                    Câu {step + 1}/{visibleQuestions.length}
                   </span>
                   <strong>
-                    {Math.round(((step + 1) / advisorQuestions.length) * 100)}%
+                    {Math.round(((step + 1) / visibleQuestions.length) * 100)}%
                   </strong>
                 </div>
                 <div className="progress-track">
                   <span
                     style={{
-                      width: `${((step + 1) / advisorQuestions.length) * 100}%`,
+                      width: `${((step + 1) / visibleQuestions.length) * 100}%`,
                     }}
                   />
                 </div>
@@ -794,13 +1276,13 @@ function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
                   className="primary-button"
                   disabled={!answers[question.key]}
                   onClick={() =>
-                    step === advisorQuestions.length - 1
+                    step === visibleQuestions.length - 1
                       ? setDone(true)
                       : setStep((n) => n + 1)
                   }
                   type="button"
                 >
-                  {step === advisorQuestions.length - 1
+                  {step === visibleQuestions.length - 1
                     ? "Xem gợi ý"
                     : "Tiếp tục"}{" "}
                   →
@@ -810,18 +1292,94 @@ function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
           ) : (
             recommendation && (
               <div className={`advisor-result ${recommendation.tone}`}>
-                <div className="result-kicker">Định hướng ban đầu</div>
-                <h3>{recommendation.product}</h3>
-                <div className="result-grid">
+                <div className="advisor-result-header">
                   <div>
-                    <strong>Vì sao phù hợp?</strong>
-                    <p>{recommendation.reason}</p>
+                    <div className="result-kicker">Kết luận tư vấn sơ bộ</div>
+                    <h3>{recommendation.product}</h3>
+                    <p>{recommendation.summary}</p>
                   </div>
-                  <div>
-                    <strong>Bước tiếp theo</strong>
-                    <p>{recommendation.action}</p>
+                  <div className="result-status">
+                    <span>{recommendation.verdict}</span>
+                    <small>Độ tin cậy: {recommendation.confidence}</small>
                   </div>
                 </div>
+
+                <div className="advisor-guardrail">
+                  <strong>Đã áp dụng điều kiện loại trừ theo tuổi</strong>
+                  <span>
+                    SpeakWell 7-12 tuổi · Easy PASS 12-18 tuổi · Easy IELTS từ
+                    12 tuổi
+                  </span>
+                </div>
+
+                <div className="result-panels">
+                  <section className="recommendation-panel">
+                    <span className="panel-number">01</span>
+                    <div>
+                      <strong>Điều kiện đã đối chiếu</strong>
+                      <ul>
+                        {recommendation.eligibility.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </section>
+                  <section className="recommendation-panel">
+                    <span className="panel-number">02</span>
+                    <div>
+                      <strong>Căn cứ của đề xuất</strong>
+                      <ul>
+                        {recommendation.rationale.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </section>
+                  <section
+                    className={`recommendation-panel ${recommendation.missing.length ? "warning" : "complete"}`}
+                  >
+                    <span className="panel-number">03</span>
+                    <div>
+                      <strong>
+                        {recommendation.missing.length
+                          ? "Dữ kiện còn thiếu"
+                          : recommendation.tone === "neutral"
+                            ? "Kết luận về điều kiện"
+                          : "Dữ kiện cốt lõi đã đủ"}
+                      </strong>
+                      {recommendation.missing.length ? (
+                        <ul>
+                          {recommendation.missing.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      ) : recommendation.tone === "neutral" ? (
+                        <p>
+                          Dữ liệu hiện có đã đủ để xác định không nên chốt một
+                          trong ba sản phẩm. Hãy thực hiện bước làm rõ bên dưới,
+                          không chuyển thẳng sang xếp lớp.
+                        </p>
+                      ) : (
+                        <p>
+                          Có thể chuyển sang đánh giá đầu vào/xếp lớp để xác
+                          minh lần cuối.
+                        </p>
+                      )}
+                    </div>
+                  </section>
+                  <section className="recommendation-panel next-step">
+                    <span className="panel-number">04</span>
+                    <div>
+                      <strong>Bước tiếp theo cho Đại sứ</strong>
+                      <ol>
+                        {recommendation.actions.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  </section>
+                </div>
+
                 <div className="result-actions">
                   <button className="secondary-button" onClick={reset}>
                     Làm lại
@@ -976,7 +1534,7 @@ function ScriptLibrary() {
       <div className="section-shell">
         <div className="section-heading centered-heading reveal">
           <span className="section-kicker">Kịch bản dùng ngay</span>
-          <h2>Từ khai thác nhu cầu đến chốt bước tiếp theo</h2>
+          <h2>Từ khai thác nhu cầu, thuyết phục đến chốt bước tiếp theo</h2>
           <p>
             Nội dung giữ vai trò tư vấn, có căn cứ và tôn trọng quyền quyết định
             của phụ huynh. Hãy cá nhân hóa trước khi gửi.
@@ -1298,7 +1856,7 @@ export default function Page() {
           <div className="quick-grid">
             {[
               ["green", "pathway", "↝", "Xem lộ trình", "Khám phá từng trình độ và đặc điểm học sinh."],
-              ["pink", "advisor", "◉", "Gợi ý tư vấn", "Nhận đề xuất có giải thích trong 60 giây."],
+              ["pink", "advisor", "◉", "Gợi ý tư vấn", "Phân tuyến có điều kiện trong 2-3 phút."],
               ["blue", "products", "⌕", "Tra cứu sản phẩm", "Lấy key tư vấn, câu hỏi và điểm loại trừ."],
               ["yellow", "scripts", "☵", "Lấy kịch bản", "Sao chép nội dung khéo léo để dùng trên Zalo."],
             ].map(([color, id, icon, title, text]) => (
