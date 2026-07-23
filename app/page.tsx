@@ -1,346 +1,492 @@
 "use client";
 
-import {
-  ArrowRight,
-  BookOpenText,
-  Check,
-  ChevronRight,
-  CircleHelp,
-  Clipboard,
-  Compass,
-  GraduationCap,
-  Headphones,
-  Info,
-  Lightbulb,
-  Menu,
-  MessageCircleMore,
-  Route,
-  Search,
-  Sparkles,
-  Target,
-  X,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type AdvisorAnswers = {
-  age: string;
-  level: string;
-  goal: string;
-  challenge: string;
-};
-
-type ProductKey = "speakwell" | "easypass" | "easyielts";
-
-type Recommendation = {
-  product: ProductKey;
+type Tone = "green" | "blue" | "pink";
+type JourneyLevel = {
+  id: string;
   label: string;
-  stage: string;
-  title: string;
-  summary: string;
-  reasons: string[];
-  checks: string[];
-  questions: string[];
-  script: string;
-  secondary?: string;
+  sub: string;
+  profile: string;
+  canDo: string;
+  counsel: string;
 };
 
-const initialAnswers: AdvisorAnswers = {
-  age: "",
-  level: "",
-  goal: "",
-  challenge: "",
-};
+const yleLevels: JourneyLevel[] = [
+  {
+    id: "beginners",
+    label: "Beginners",
+    sub: "Tiền Pre A1",
+    profile:
+      "Học sinh mới làm quen tiếng Anh, vốn từ còn rời rạc, cần hình thành thói quen nghe và phản xạ với chỉ dẫn đơn giản.",
+    canDo:
+      "Nhận biết âm, từ và mẫu câu quen thuộc; giới thiệu thông tin rất cơ bản với hỗ trợ trực quan.",
+    counsel:
+      "Ưu tiên hứng thú, phát âm và sự tự tin. Chưa đặt áp lực bài thi hoặc ghi nhớ ngữ pháp tách rời ngữ cảnh.",
+  },
+  {
+    id: "starters",
+    label: "Pre A1 Starters",
+    sub: "Nền tảng ban đầu",
+    profile:
+      "Đã có vốn từ cơ bản về bản thân, gia đình, trường học và đồ vật quen thuộc; vẫn cần hình ảnh hoặc gợi ý.",
+    canDo:
+      "Hiểu câu hỏi ngắn, đọc và viết từ/câu rất đơn giản, trả lời về thông tin cá nhân trong tình huống quen thuộc.",
+    counsel:
+      "Giúp con kết nối từ vựng với nghe - nói - đọc - viết, thay vì chỉ học danh sách từ hoặc luyện dạng đề.",
+  },
+  {
+    id: "movers",
+    label: "A1 Movers",
+    sub: "Giao tiếp đơn giản",
+    profile:
+      "Có thể xử lý các tình huống quen thuộc nhưng câu nói còn ngắn, độ chính xác và khả năng duy trì hội thoại chưa ổn định.",
+    canDo:
+      "Hiểu hướng dẫn trực tiếp, mô tả người/vật/sự việc, viết câu ngắn và tham gia trao đổi đơn giản về đời sống hằng ngày.",
+    counsel:
+      "Tăng độ dài phát ngôn, khả năng kể - mô tả và chuyển kiến thức sang sử dụng chủ động; không chỉ nâng độ khó bài tập.",
+  },
+  {
+    id: "flyers",
+    label: "A2 Flyers",
+    sub: "Sử dụng độc lập hơn",
+    profile:
+      "Đã có nền tảng để giao tiếp trong nhiều tình huống quen thuộc; bắt đầu cần diễn đạt ý kiến và xử lý văn bản dài hơn.",
+    canDo:
+      "Theo dõi hội thoại ngắn, đọc hiểu văn bản đơn giản, kể lại sự việc và viết đoạn có liên kết ở mức cơ bản.",
+    counsel:
+      "Sau Flyers cần nhìn mục tiêu tiếp theo: tiếng Anh tổng quát cho Teens hay IELTS. Không tự động chuyển thẳng sang luyện thi.",
+  },
+];
 
-const questions = [
+const generalLevels: JourneyLevel[] = [
+  {
+    id: "a1",
+    label: "A1",
+    sub: "Basic user",
+    profile:
+      "Hiểu và sử dụng các biểu đạt quen thuộc; giao tiếp được khi người đối thoại nói chậm, rõ và có hỗ trợ.",
+    canDo:
+      "Giới thiệu bản thân, hỏi - đáp thông tin cá nhân, xử lý nhu cầu rất cơ bản trong bối cảnh quen thuộc.",
+    counsel:
+      "Củng cố hệ thống ngôn ngữ và tính chủ động; chưa nên vội chuyển sang kỹ thuật làm bài học thuật.",
+  },
+  {
+    id: "a2",
+    label: "A2",
+    sub: "Elementary user",
+    profile:
+      "Có thể giao tiếp trong các nhiệm vụ thường ngày nhưng còn hạn chế khi chủ đề mới, tốc độ nói nhanh hoặc cần lập luận.",
+    canDo:
+      "Mô tả nền tảng cá nhân, môi trường xung quanh và trao đổi thông tin trực tiếp trong tình huống quen thuộc.",
+    counsel:
+      "Mở rộng vốn từ theo chủ đề, tăng độ trôi chảy và chuyển sang văn bản/hội thoại có kết nối.",
+  },
+  {
+    id: "b1",
+    label: "B1",
+    sub: "Independent user",
+    profile:
+      "Đã tương đối độc lập trong bối cảnh quen thuộc; có thể diễn đạt trải nghiệm và ý kiến nhưng chiều sâu, độ chính xác còn giới hạn.",
+    canDo:
+      "Nắm ý chính của đầu vào chuẩn, xử lý tình huống học tập/du lịch, viết văn bản có liên kết và giải thích ngắn gọn.",
+    counsel:
+      "Phát triển lập luận, độ chính xác và chiến lược tự học. Có thể bắt đầu chuẩn bị học thuật nếu mục tiêu rõ.",
+  },
+  {
+    id: "b2",
+    label: "B2",
+    sub: "Upper-intermediate",
+    profile:
+      "Có thể tương tác tương đối tự nhiên và tiếp cận nội dung phức tạp; cần tinh chỉnh ngôn ngữ học thuật và hiệu suất làm bài.",
+    canDo:
+      "Hiểu ý chính của văn bản phức tạp, trao đổi khá trôi chảy và trình bày quan điểm có lý do, ưu - nhược điểm.",
+    counsel:
+      "Nếu cần IELTS, chuyển trọng tâm sang tiêu chí chấm, chiến lược kỹ năng và luyện tập có phản hồi.",
+  },
+];
+
+const ieltsLevels: JourneyLevel[] = [
+  {
+    id: "ielts2",
+    label: "2.0-2.5",
+    sub: "Introduction",
+    profile:
+      "Nền tảng ngôn ngữ còn rất hạn chế; chưa thể xử lý ổn định các nhiệm vụ IELTS nếu chỉ luyện đề.",
+    canDo:
+      "Bắt đầu xây ngôn ngữ cốt lõi và làm quen tư duy bằng tiếng Anh qua nhiệm vụ thực tiễn.",
+    counsel:
+      "Ưu tiên xây nền, thói quen học và bốn kỹ năng; đặt mốc gần 3.0-3.5 trước khi tăng độ khó.",
+  },
+  {
+    id: "ielts3",
+    label: "3.0-3.5",
+    sub: "Foundation",
+    profile:
+      "Hiểu được ý rất cơ bản nhưng vốn từ, ngữ pháp và khả năng xử lý đầu vào dài còn thiếu ổn định.",
+    canDo:
+      "Thực hiện nhiệm vụ ngôn ngữ có cấu trúc và bắt đầu hình thành nền tảng học thuật mềm.",
+    counsel:
+      "Không biến khóa học thành luyện mẹo. Cần phát triển ngôn ngữ và kỹ năng song song để hướng tới 4.0-4.5.",
+  },
+  {
+    id: "ielts4",
+    label: "4.0-4.5",
+    sub: "Preparation",
+    profile:
+      "Có khả năng giao tiếp cơ bản nhưng thường gặp khó khi lập luận, xử lý văn bản học thuật và duy trì độ chính xác.",
+    canDo:
+      "Bắt đầu áp dụng chiến lược từng kỹ năng, nhận diện dạng bài và xử lý yêu cầu ở mức có hướng dẫn.",
+    counsel:
+      "Phát triển kỹ năng học thuật cốt lõi, chiến lược xử lý đề và khả năng tự đánh giá để hướng tới 5.0-5.5.",
+  },
+  {
+    id: "ielts5",
+    label: "5.0-5.5",
+    sub: "Intensive",
+    profile:
+      "Có thể hoàn thành phần lớn nhiệm vụ nhưng chất lượng chưa đồng đều giữa kỹ năng; lỗi ngôn ngữ vẫn ảnh hưởng thông điệp.",
+    canDo:
+      "Vận dụng chiến lược tương đối độc lập, phát triển lập luận và xử lý dạng bài trong điều kiện thời gian.",
+    counsel:
+      "Cần chẩn đoán điểm nghẽn từng kỹ năng, phản hồi theo tiêu chí chấm và luyện có chủ đích để đạt 6.0-6.5.",
+  },
+  {
+    id: "ielts6",
+    label: "6.0-6.5",
+    sub: "Master",
+    profile:
+      "Sử dụng tiếng Anh khá hiệu quả nhưng vẫn có lỗi và thiếu linh hoạt ở chủ đề phức tạp hoặc yêu cầu học thuật cao.",
+    canDo:
+      "Tổ chức ý rõ, xử lý đa số nhiệm vụ học thuật và giao tiếp tương đối trôi chảy, chính xác.",
+    counsel:
+      "Tối ưu độ sâu lập luận, tính linh hoạt và kiểm soát lỗi; luyện theo dữ liệu tiêu chí để hướng tới 7.0+.",
+  },
+  {
+    id: "ielts7",
+    label: "7.0+",
+    sub: "Good user",
+    profile:
+      "Sử dụng tiếng Anh hiệu quả trong đa số bối cảnh, có khả năng xử lý ngôn ngữ phức tạp và lập luận học thuật.",
+    canDo:
+      "Hiểu chi tiết, diễn đạt linh hoạt và kiểm soát ngôn ngữ tốt; sai sót không có tính hệ thống.",
+    counsel:
+      "Mục tiêu nâng cao cần tập trung vào độ tinh tế, tính nhất quán và yêu cầu cụ thể của trường/chương trình.",
+  },
+];
+
+const products = [
+  {
+    id: "speakwell",
+    tone: "green" as Tone,
+    tag: "Cambridge Young Learners",
+    name: "SpeakWell",
+    intro:
+      "Chương trình tiếng Anh trực tuyến toàn diện cho học sinh 7-12 tuổi, xây năng lực thực chất theo lộ trình Beginners → Starters → Movers → Flyers.",
+    signals: [
+      "Con đang ở tiểu học và cần xây nền tảng bốn kỹ năng.",
+      "Phụ huynh quan tâm giao tiếp nhưng vẫn muốn có cột mốc Cambridge rõ ràng.",
+      "Con biết từ/ngữ pháp nhưng chưa chủ động nghe - nói hoặc thiếu hứng thú học.",
+    ],
+    keys: [
+      {
+        title: "Ba mục tiêu trong một lộ trình",
+        text: "Phát triển Nghe - Nói - Đọc - Viết; nuôi dưỡng hứng thú và giá trị tích cực; định hướng Cambridge YLE.",
+      },
+      {
+        title: "Thực hành đa môi trường",
+        text: "Lớp học cùng giáo viên, học liệu tương tác đa phương tiện, LMS và công cụ AI hỗ trợ luyện phát âm - phản xạ.",
+      },
+      {
+        title: "Phương pháp 7E và Activity-based Learning",
+        text: "Tổ chức việc học thành chu trình gợi nhớ, gắn kết, khám phá, giải thích, áp dụng, đánh giá và mở rộng.",
+      },
+      {
+        title: "Lộ trình có đánh giá",
+        text: "Xác định đầu vào, xây kế hoạch, theo dõi tiến bộ và kiểm tra định kỳ để khuyến nghị chặng tiếp theo.",
+      },
+    ],
+    questions: [
+      "Con hiện 7-12 tuổi và đang học lớp mấy?",
+      "Chứng chỉ hoặc cấp độ Cambridge gần nhất của con là gì?",
+      "Con đang yếu khả năng sử dụng nào: nghe hiểu, phản xạ nói, đọc hay viết?",
+      "Gia đình ưu tiên năng lực thực tế, chứng chỉ hay cả hai?",
+    ],
+    avoid:
+      "Không ưu tiên khi học sinh ngoài 7-12 tuổi, đã qua A2 và cần General English cho Teens hoặc đã có nền tảng cùng mục tiêu IELTS cụ thể.",
+    close:
+      "Đề xuất đánh giá đầu vào để chọn đúng Beginners/Starters/Movers/Flyers, sau đó thống nhất một mục tiêu năng lực có thể quan sát.",
+  },
+  {
+    id: "easypass",
+    tone: "blue" as Tone,
+    tag: "General English · A1-B2",
+    name: "Easy PASS",
+    intro:
+      "Chương trình tiếng Anh toàn diện cho học sinh 12-18 tuổi, phù hợp giai đoạn chuyển tiếp sang Teens và phát triển từ A1 đến B2.",
+    signals: [
+      "Học sinh cần củng cố đồng đều bốn kỹ năng thay vì chỉ chạy theo một chứng chỉ.",
+      "Gia đình muốn hỗ trợ việc học ở trường, giao tiếp và nền tảng dài hạn.",
+      "Học sinh sau Flyers chưa có mục tiêu IELTS rõ hoặc chưa sẵn sàng cho học thuật.",
+    ],
+    keys: [
+      {
+        title: "Thiết kế riêng cho tuổi Teens",
+        text: "Kết hợp năng lực tiếng Anh, kiến thức xã hội, kỹ năng mềm và khả năng hội nhập trong giai đoạn nhiều thay đổi.",
+      },
+      {
+        title: "Lộ trình CEFR A1 → B2",
+        text: "Bốn chặng từ mất gốc/A1 đến B2, giúp Đại sứ tư vấn theo năng lực hiện tại thay vì chỉ theo tuổi.",
+      },
+      {
+        title: "Học trực tiếp và tự luyện",
+        text: "Lớp 1:1 45 phút hoặc lớp nhóm 1:8 90 phút, kết hợp LMS, bài luyện bổ sung và công cụ luyện nói.",
+      },
+      {
+        title: "Đánh giá và đồng hành",
+        text: "Kiểm tra định kỳ bốn kỹ năng, phản hồi cải thiện và theo dõi học tập để duy trì tiến độ.",
+      },
+    ],
+    questions: [
+      "Khó khăn hiện tại đến từ mất gốc, thiếu thực hành hay kiến thức không hệ thống?",
+      "Mục tiêu 6-12 tháng là học trên trường, giao tiếp, CEFR hay chuẩn bị nền IELTS?",
+      "Năng lực bốn kỹ năng có đồng đều không?",
+      "Học sinh phù hợp lớp 1:1 hay có thể học hiệu quả trong nhóm?",
+    ],
+    avoid:
+      "Không ưu tiên khi học sinh 7-12 tuổi vẫn cần hoàn thiện YLE, hoặc đã có band nền phù hợp, ngày thi và mục tiêu IELTS rõ.",
+    close:
+      "Xác định mức A1/A2/B1/B2, chọn điểm nghẽn chính và thống nhất tiêu chí tiến bộ thay vì chỉ nói chung là “học tốt hơn”.",
+  },
+  {
+    id: "easyielts",
+    tone: "pink" as Tone,
+    tag: "IELTS · 2.0-7.0+",
+    name: "Easy IELTS",
+    intro:
+      "Lộ trình luyện thi IELTS theo năng lực và band mục tiêu, kết hợp lớp live trên ICAN Learning Platform, tự luyện và phản hồi định kỳ.",
+    signals: [
+      "Học sinh có mục tiêu sử dụng IELTS cụ thể cho đại học, xét tuyển hoặc kế hoạch học tập.",
+      "Có thể xác định band hiện tại, band mục tiêu và quỹ thời gian.",
+      "Sẵn sàng duy trì cả giờ học cùng giáo viên lẫn thời lượng tự luyện.",
+    ],
+    keys: [
+      {
+        title: "Năm chặng cá nhân hóa",
+        text: "Introduction 2.0-2.5; Foundation 3.0-3.5; Preparation 4.0-4.5; Intensive 5.0-5.5; Master 6.0-6.5.",
+      },
+      {
+        title: "Phương pháp theo trình độ",
+        text: "Task-based Learning cho nền tảng; CALLA cho chiến lược học thuật; 4MAT cho tư duy và khả năng ứng dụng ở band cao.",
+      },
+      {
+        title: "Hệ sinh thái thực hành",
+        text: "Lớp live, LMS, học liệu bám sát IELTS và công cụ AI hỗ trợ Speaking/Writing; nhấn mạnh học có phản hồi.",
+      },
+      {
+        title: "Đánh giá dựa trên dữ liệu",
+        text: "Mock/Final Test, chấm chữa theo tiêu chí và khuyến nghị cải thiện giúp lộ trình không dựa trên cảm tính.",
+      },
+    ],
+    questions: [
+      "IELTS sẽ được sử dụng cho mục tiêu nào và vào thời điểm nào?",
+      "Band hiện tại được xác định bằng bài thi hoặc đánh giá nào?",
+      "Kỹ năng nào đang tạo khoảng cách lớn nhất tới band mục tiêu?",
+      "Học sinh có thể duy trì bao nhiêu giờ học và tự luyện mỗi tuần?",
+    ],
+    avoid:
+      "Không ưu tiên chỉ vì IELTS phổ biến. Nếu chưa có mục tiêu sử dụng, nền tảng còn yếu hoặc chưa sẵn sàng học thuật, cần xây nền trước.",
+    close:
+      "Chốt ba dữ liệu trước khi chốt khóa: band hiện tại - band mục tiêu - thời hạn. Sau đó mới chọn chặng học và kế hoạch tự luyện.",
+  },
+];
+
+const scripts = [
+  {
+    group: "Khám phá nhu cầu",
+    title: "Mở đầu cuộc tư vấn",
+    text: "Để em gợi ý đúng hướng cho con, chị cho em hỏi nhanh ba điểm: hiện con đang học lớp mấy và ở trình độ nào; kỹ năng nào con đang tự tin hoặc còn gặp khó; gia đình muốn ưu tiên giao tiếp, học trên trường hay một chứng chỉ cụ thể ạ? Em muốn hiểu đúng nhu cầu trước khi nói về khóa học.",
+  },
+  {
+    group: "Khám phá nhu cầu",
+    title: "Khi phụ huynh chỉ hỏi học phí",
+    text: "Em gửi chị thông tin học phí ngay ạ. Tuy nhiên, cùng một độ tuổi có thể phù hợp những lộ trình khác nhau, nên cho em xin thêm trình độ gần nhất và mục tiêu của con. Như vậy mình sẽ so sánh chi phí trên đúng phương án học, tránh chọn gói chưa phù hợp rồi phải điều chỉnh giữa chừng.",
+  },
+  {
+    group: "Cambridge YLE",
+    title: "Giải thích Starters - Movers - Flyers",
+    text: "Starters, Movers và Flyers không chỉ là ba kỳ thi, mà là ba cột mốc phát triển năng lực. Ở Starters, con xử lý ngôn ngữ rất quen thuộc; lên Movers, con có thể giao tiếp đơn giản trong đời sống; tới Flyers, con sử dụng tiếng Anh độc lập hơn ở mức A2. Vì vậy, mình chọn cấp độ theo năng lực thực tế chứ không chỉ theo tuổi.",
+  },
+  {
+    group: "Cambridge YLE",
+    title: "Từ A1 Movers lên A2 Flyers",
+    text: "Ở A1 Movers, con thường đã giao tiếp được trong tình huống quen thuộc nhưng câu còn ngắn và phụ thuộc gợi ý. Chặng A2 Flyers cần giúp con theo dõi hội thoại dài hơn, kể - mô tả có liên kết và đọc viết độc lập hơn. Mục tiêu không đơn thuần là làm đề khó hơn, mà là mở rộng khả năng sử dụng tiếng Anh.",
+  },
+  {
+    group: "Gợi ý sản phẩm",
+    title: "Gợi ý SpeakWell",
+    text: "Với độ tuổi 7-12 và nhu cầu hiện tại, em đề xuất gia đình ưu tiên SpeakWell để con phát triển đồng đều Nghe, Nói, Đọc, Viết theo lộ trình Cambridge. Chương trình kết hợp lớp cùng giáo viên, học liệu tương tác, LMS và luyện nói; chứng chỉ là cột mốc ghi nhận, còn năng lực sử dụng tiếng Anh mới là mục tiêu chính.",
+  },
+  {
+    group: "Gợi ý sản phẩm",
+    title: "Gợi ý Easy PASS",
+    text: "Con đang ở giai đoạn Teens và mục tiêu trước mắt là củng cố tiếng Anh toàn diện, nên Easy PASS phù hợp hơn việc đi thẳng vào luyện thi. Lộ trình A1-B2 giúp con phát triển bốn kỹ năng, hỗ trợ học trên trường và tạo nền cho mục tiêu học thuật sau này. Em đề xuất mình xác định đúng mức đầu vào trước.",
+  },
+  {
+    group: "Gợi ý sản phẩm",
+    title: "Gợi ý Easy IELTS",
+    text: "Vì con đã có mục tiêu sử dụng IELTS, band hiện tại và mốc thời gian tương đối rõ, mình có thể xây lộ trình Easy IELTS theo khoảng cách cần cải thiện. Em sẽ không chỉ nhìn overall, mà cần xem kỹ năng nào đang là điểm nghẽn để chọn chặng học và kế hoạch tự luyện phù hợp.",
+  },
+  {
+    group: "Chuyển tiếp",
+    title: "Sau Flyers nên học gì?",
+    text: "Sau Flyers, mình chưa cần mặc định chuyển sang IELTS. Nếu con cần tiếng Anh tổng quát, hỗ trợ học ở THCS và phát triển từ A2 lên B1-B2, Easy PASS là hướng hợp lý. Nếu con đã có nền tảng, mục tiêu band và thời điểm sử dụng chứng chỉ rõ, lúc đó mới cân nhắc Easy IELTS.",
+  },
+  {
+    group: "Chuyển tiếp",
+    title: "Học sinh 12 tuổi",
+    text: "Mười hai tuổi là điểm chuyển tiếp nên em không muốn quyết định chỉ theo tuổi. Nếu con vẫn đang hoàn thiện YLE, mình có thể tiếp tục chặng phù hợp của SpeakWell. Nếu con đã qua A2 và cần tiếng Anh tổng quát cho Teens, Easy PASS hợp lý hơn. Mình nên dựa vào đánh giá đầu vào để chọn đúng.",
+  },
+  {
+    group: "IELTS & đại học",
+    title: "Vai trò của IELTS với đại học",
+    text: "IELTS có thể mở rộng lựa chọn học tập khi được đặt trong kế hoạch đại học cụ thể: chuẩn đầu vào, phương án xét tuyển, học chương trình quốc tế hoặc chuẩn bị năng lực học thuật. Tuy nhiên, chính sách từng trường và từng năm có thể thay đổi, nên mình sẽ xác minh yêu cầu mục tiêu trước rồi mới xác định band và thời điểm thi.",
+  },
+  {
+    group: "Bước tiếp theo",
+    title: "Chưa đủ dữ liệu để kết luận",
+    text: "Với thông tin hiện tại, em chưa muốn chốt vội một khóa học vì mình còn thiếu dữ liệu về trình độ và khoảng cách giữa các kỹ năng. Bước hợp lý nhất là đánh giá đầu vào, sau đó em sẽ giải thích rõ con đang ở đâu, mục tiêu tiếp theo là gì và vì sao lộ trình được đề xuất phù hợp.",
+  },
+  {
+    group: "Bước tiếp theo",
+    title: "Mời đánh giá đầu vào",
+    text: "Để tư vấn có căn cứ, em đề xuất con thực hiện đánh giá đầu vào trước. Kết quả không chỉ dùng để xếp lớp mà giúp mình nhìn rõ điểm mạnh, điểm cần cải thiện và mức mục tiêu phù hợp. Sau đó em sẽ cùng chị rà lại lộ trình, thời lượng và cách theo dõi tiến bộ của con.",
+  },
+];
+
+const objections = [
+  {
+    q: "Con còn nhỏ, học Cambridge có tạo áp lực không?",
+    answer:
+      "Em hiểu lo lắng của chị vì nếu chương trình quá thiên về luyện đề, trẻ dễ mất hứng thú. Cambridge YLE nên được dùng như khung năng lực và cột mốc tiến bộ. Với học sinh 7-12 tuổi, mình ưu tiên từ vựng, phát âm, nghe hiểu và phản xạ qua hoạt động; chỉ làm quen dạng thi khi nền tảng đã sẵn sàng.",
+    next: "Hỏi thêm: Con từng có trải nghiệm nào khiến con sợ hoặc không thích học tiếng Anh?",
+  },
+  {
+    q: "Học SpeakWell có phải chỉ để luyện thi chứng chỉ?",
+    answer:
+      "Không ạ. SpeakWell phát triển đồng thời bốn kỹ năng và dùng Beginners, Starters, Movers, Flyers như những cột mốc có thể quan sát. Chứng chỉ ghi nhận kết quả; giá trị dài hạn là con hiểu, phản hồi và sử dụng tiếng Anh ngày càng độc lập.",
+    next: "Đề xuất: thống nhất một mục tiêu sử dụng thực tế bên cạnh mục tiêu chứng chỉ.",
+  },
+  {
+    q: "Con 12 tuổi nên học SpeakWell hay Easy PASS?",
+    answer:
+      "Mười hai tuổi là giai đoạn chuyển tiếp nên tuổi chưa đủ để kết luận. Nếu con vẫn cần hoàn thiện chặng YLE, SpeakWell có thể phù hợp; nếu đã ở khoảng A2 và cần General English cho THCS, Easy PASS thường hợp lý hơn. Kết quả đầu vào và mục tiêu 6-12 tháng sẽ quyết định.",
+    next: "Hỏi thêm: Con đã học hoặc thi Cambridge ở cấp độ nào và mục tiêu gần nhất là gì?",
+  },
+  {
+    q: "Tại sao không học IELTS càng sớm càng tốt?",
+    answer:
+      "IELTS đo năng lực ngôn ngữ trong bối cảnh học thuật, nên hiệu quả phụ thuộc vào nền tảng, tư duy và mục tiêu sử dụng. Bắt đầu quá sớm khi chưa sẵn sàng dễ khiến con học mẹo và tiến bộ thiếu bền vững. Mình nên chọn đúng thời điểm dựa trên trình độ, band mục tiêu và thời hạn cần chứng chỉ.",
+    next: "Hỏi thêm: Gia đình dự kiến dùng IELTS cho quyết định học tập nào và vào năm nào?",
+  },
+  {
+    q: "Con học trên trường khá rồi, có cần học thêm không?",
+    answer:
+      "Điểm trên trường là một dữ liệu quan trọng nhưng chưa phản ánh đầy đủ khả năng sử dụng bốn kỹ năng. Mình nên kiểm tra xem con có nghe hiểu ở tốc độ tự nhiên, duy trì hội thoại, đọc văn bản mới và viết có tổ chức hay không. Nếu các năng lực này đã tốt, lộ trình bổ sung cần được thiết kế ở mức cao hơn chứ không học lại.",
+    next: "Đề xuất: dùng một đánh giá bốn kỹ năng thay vì chỉ nhìn điểm tổng kết.",
+  },
+  {
+    q: "Con làm bài tốt nhưng vẫn ngại giao tiếp.",
+    answer:
+      "Đây thường là khoảng cách giữa kiến thức khai báo và khả năng sử dụng tự động. Con cần đủ đầu vào nghe, cơ hội nói trong tình huống có ý nghĩa, phản hồi đúng lúc và sự lặp lại trong môi trường an toàn. Vì vậy, em sẽ xem cả tần suất thực hành và mức chủ động, không chỉ số câu đúng.",
+    next: "Hỏi thêm: Con ngại vì thiếu từ, sợ sai hay ít có môi trường nói?",
+  },
+  {
+    q: "Học online liệu có cải thiện giao tiếp thật không?",
+    answer:
+      "Hiệu quả không do online hay offline quyết định riêng lẻ, mà do mật độ tương tác, chất lượng phản hồi, thời lượng thực hành và mức độ duy trì. Lớp online có lợi thế về dữ liệu, học liệu và khả năng luyện thường xuyên; nhưng con vẫn cần tham gia chủ động và hoàn thành phần tự luyện.",
+    next: "Đề xuất: theo dõi thời lượng nói, mức tham gia và sản phẩm ngôn ngữ sau từng giai đoạn.",
+  },
+  {
+    q: "Con mất gốc, liệu có theo kịp lớp không?",
+    answer:
+      "Mất gốc thường là mô tả chung, cần tách thành thiếu từ vựng, ngữ pháp không hệ thống, yếu nghe hay thiếu thói quen học. Nếu xác định đúng điểm xuất phát và chọn lớp phù hợp, con không phải chạy theo chương trình vượt quá nền tảng. Quan trọng là mục tiêu gần đủ nhỏ và được theo dõi.",
+    next: "Bước tiếp theo: đánh giá đầu vào và chọn một năng lực ưu tiên trong 8-12 tuần đầu.",
+  },
+  {
+    q: "Gia đình muốn con đạt band nhanh trong vài tháng.",
+    answer:
+      "Em hiểu gia đình cần một mốc rõ. Để đánh giá tính khả thi, mình cần ba dữ liệu: band hiện tại có độ tin cậy, band mục tiêu và số giờ học thực tế mỗi tuần. Khoảng cách band không tăng tuyến tính; từng kỹ năng có thể cần thời gian khác nhau. Em sẽ đề xuất mốc trung gian để kiểm soát rủi ro.",
+    next: "Hỏi thêm: Điểm gần nhất được thi trong điều kiện nào và kỹ năng thấp nhất là gì?",
+  },
+  {
+    q: "Học phí cao hơn nơi khác, khác biệt nằm ở đâu?",
+    answer:
+      "So sánh hợp lý nhất là trên tổng giá trị lộ trình: chất lượng giáo viên, thời lượng tương tác thực, học liệu - LMS, phản hồi, đánh giá tiến bộ và cơ chế đồng hành. Một mức phí thấp hơn chưa chắc tiết kiệm nếu sai trình độ hoặc thiếu thực hành. Em sẽ cùng chị đối chiếu trên đúng mục tiêu của con.",
+    next: "Đề xuất: lập bảng so sánh theo 5 tiêu chí thay vì chỉ so đơn giá mỗi buổi.",
+  },
+  {
+    q: "Con bận, không có nhiều thời gian tự học.",
+    answer:
+      "Đây là dữ liệu cần đưa vào thiết kế lộ trình, không nên bỏ qua. Tiến bộ ngôn ngữ cần phân bố thời gian đủ đều; nếu chỉ học live mà không củng cố, hiệu quả sẽ giảm. Mình có thể chọn mục tiêu vừa sức, lịch học phù hợp và một mức tự luyện tối thiểu có thể duy trì.",
+    next: "Hỏi thêm: Con có thể cam kết khung thời gian cố định nào trong tuần?",
+  },
+  {
+    q: "Làm sao biết con thực sự tiến bộ?",
+    answer:
+      "Không nên chỉ nhìn một điểm tổng. Mình theo dõi đồng thời mức nghe hiểu, độ dài và rõ của phát ngôn, khả năng vận dụng trong tình huống mới, chất lượng đọc - viết và kết quả đánh giá định kỳ. Tiến bộ đáng tin cậy cần có dữ liệu trước - sau và nhận xét theo tiêu chí.",
+    next: "Đề xuất: thống nhất 2-3 chỉ báo quan sát được ngay khi bắt đầu khóa.",
+  },
+];
+
+const advisorQuestions = [
   {
     key: "age",
-    eyebrow: "Câu 1/4",
     title: "Học sinh đang ở độ tuổi nào?",
-    note: "Độ tuổi giúp xác định giai đoạn phát triển ngôn ngữ, chưa đủ để kết luận sản phẩm.",
+    note: "Độ tuổi giúp xác định giai đoạn phát triển, nhưng chưa đủ để kết luận sản phẩm.",
     options: [
-      ["4-6", "4–6 tuổi", "Mầm non / đầu tiểu học"],
-      ["7-11", "7–11 tuổi", "Tiểu học"],
+      ["7-11", "7-11 tuổi", "Tiểu học"],
       ["12", "12 tuổi", "Giai đoạn chuyển tiếp"],
-      ["13-15", "13–15 tuổi", "THCS"],
-      ["16-18", "16–18 tuổi", "THPT"],
+      ["13-15", "13-15 tuổi", "THCS"],
+      ["16-18", "16-18 tuổi", "THPT"],
     ],
   },
   {
     key: "level",
-    eyebrow: "Câu 2/4",
-    title: "Nền tảng tiếng Anh hiện tại gần nhất với mô tả nào?",
-    note: "Nếu chưa có kết quả đánh giá đáng tin cậy, hãy chọn “Chưa xác định”.",
+    title: "Nền tảng gần nhất của học sinh?",
+    note: "Ưu tiên kết quả đánh giá hoặc chứng chỉ gần nhất; nếu chưa rõ, chọn “Chưa xác định”.",
     options: [
-      ["unknown", "Chưa xác định", "Chưa test hoặc thông tin chưa rõ"],
-      ["beginner", "Mới bắt đầu / mất gốc", "Khó dùng câu tiếng Anh đơn giản"],
-      ["preA1", "Pre A1 / Starters", "Hiểu và dùng từ, cụm rất quen thuộc"],
-      ["A1", "A1 / Movers", "Giao tiếp đơn giản trong tình huống quen thuộc"],
-      ["A2", "A2 / Flyers", "Có nền tảng bốn kỹ năng cơ bản"],
-      ["B1plus", "B1 trở lên", "Đã có nền tảng để học thuật và luyện thi"],
+      ["yle", "Beginners - Movers", "Đang trong chặng nền tảng YLE"],
+      ["a2", "Flyers / A2", "Đã có nền tảng sử dụng độc lập hơn"],
+      ["b1", "B1 trở lên", "Có thể bắt đầu mục tiêu học thuật"],
+      ["ielts", "Đã có band IELTS", "Có kết quả đánh giá tương đối rõ"],
+      ["unknown", "Chưa xác định", "Cần đánh giá đầu vào"],
     ],
   },
   {
     key: "goal",
-    eyebrow: "Câu 3/4",
-    title: "Mục tiêu ưu tiên của gia đình là gì?",
-    note: "Chọn mục tiêu cần giải quyết trước, không chọn tất cả mục tiêu dài hạn.",
+    title: "Mục tiêu ưu tiên của gia đình?",
+    note: "Nếu có nhiều mục tiêu, chọn mục tiêu quan trọng nhất trong 6-12 tháng tới.",
     options: [
-      ["YLE", "Cambridge YLE", "Starters, Movers hoặc Flyers"],
-      ["general", "Năng lực toàn diện", "Phát triển Nghe, Nói, Đọc, Viết"],
-      ["school", "Hỗ trợ học trên trường", "Củng cố kiến thức và kết quả học tập"],
-      ["IELTS", "Chinh phục IELTS", "Có mục tiêu band tương đối rõ"],
-      ["university", "Chuẩn bị cho đại học", "Dùng IELTS để mở rộng lựa chọn"],
+      ["cambridge", "Cambridge YLE", "Xây nền và có cột mốc chứng chỉ"],
+      ["general", "Tiếng Anh tổng quát", "Bốn kỹ năng, học trên trường, giao tiếp"],
+      ["ielts", "IELTS / đại học", "Có band hoặc kế hoạch sử dụng rõ"],
+      ["unclear", "Chưa rõ mục tiêu", "Cần làm rõ nhu cầu trước"],
     ],
   },
   {
-    key: "challenge",
-    eyebrow: "Câu 4/4",
-    title: "Vấn đề cần ưu tiên xử lý là gì?",
-    note: "Kết quả sẽ tập trung luận điểm tư vấn vào vấn đề phụ huynh quan tâm nhất.",
+    key: "timeline",
+    title: "Mức độ rõ ràng của kế hoạch?",
+    note: "Một đề xuất tốt cần phù hợp cả năng lực, mục tiêu và khả năng duy trì.",
     options: [
-      ["confidence", "Ngại nói, thiếu phản xạ", "Làm bài được nhưng chưa tự tin giao tiếp"],
-      ["balanced", "Lệch kỹ năng", "Một số kỹ năng tiến bộ chậm hơn"],
-      ["foundation", "Hổng nền tảng", "Từ vựng, ngữ pháp hoặc phát âm chưa chắc"],
-      ["exam", "Chưa có chiến lược thi", "Cần lộ trình và kỹ thuật làm bài rõ ràng"],
+      ["clear", "Đã rõ mốc thời gian", "Có thể xác định đầu ra và tiến độ"],
+      ["flexible", "Có mục tiêu, thời gian linh hoạt", "Ưu tiên phát triển bền vững"],
+      ["unknown", "Chưa đủ dữ liệu", "Nên đánh giá và tư vấn sâu hơn"],
     ],
-  },
-] as const;
-
-const productMeta = {
-  speakwell: {
-    name: "SpeakWell",
-    color: "green",
-    audience: "4–12 tuổi",
-    level: "Beginners → Flyers",
-    promise: "Xây nền tảng bốn kỹ năng theo lộ trình Cambridge YLE.",
-  },
-  easypass: {
-    name: "Easy PASS",
-    color: "blue",
-    audience: "12–18 tuổi",
-    level: "A1 → B2",
-    promise: "Tiếng Anh toàn diện cho tuổi Teens, gắn với học tập và ứng dụng.",
-  },
-  easyielts: {
-    name: "Easy IELTS",
-    color: "pink",
-    audience: "Từ 12 tuổi",
-    level: "IELTS 2.0 → 7.0+",
-    promise: "Lộ trình luyện thi theo năng lực và mục tiêu band.",
-  },
-} as const;
-
-const scripts = [
-  {
-    id: "discover",
-    label: "Khai thác nhu cầu",
-    title: "Mở đầu cuộc tư vấn",
-    text: "Để em gợi ý đúng lộ trình cho con, chị cho em hỏi nhanh: hiện con đang học lớp mấy, khả năng nào con đang tự tin nhất, phần nào còn yếu và gia đình muốn ưu tiên giao tiếp, học trên trường hay một chứng chỉ cụ thể ạ?",
-  },
-  {
-    id: "yle",
-    label: "Giải thích YLE",
-    title: "Starters, Movers, Flyers là gì?",
-    text: "Starters, Movers và Flyers không chỉ là ba bài thi. Đây là các cột mốc Pre A1, A1 và A2 giúp ba mẹ nhìn rõ con đang nghe, nói, đọc, viết được gì. Vì vậy, mình nên chọn lộ trình dựa trên năng lực thực tế của con, không chỉ dựa vào tuổi hoặc mong muốn lấy chứng chỉ.",
-  },
-  {
-    id: "speakwell",
-    label: "Gợi ý SpeakWell",
-    title: "Từ nhu cầu Cambridge đến SpeakWell",
-    text: "Với độ tuổi và nền tảng hiện tại, con nên ưu tiên xây năng lực tiếng Anh thực chất theo lộ trình Cambridge. SpeakWell phát triển đồng thời bốn kỹ năng qua lớp học cùng giáo viên, hoạt động tương tác, LMS và công cụ luyện nói. Chứng chỉ là cột mốc ghi nhận, còn nền tảng sử dụng tiếng Anh mới là mục tiêu chính.",
-  },
-  {
-    id: "transition",
-    label: "Sau Flyers",
-    title: "Chọn hướng đi sau Flyers",
-    text: "Sau Flyers, con đã có nền tảng tương đương A2. Bước tiếp theo không có một đáp án chung: nếu con cần củng cố tiếng Anh tổng quát và học trên trường, Easy PASS phù hợp hơn; nếu con đã có mục tiêu IELTS rõ và sẵn sàng học theo hướng học thuật, mình mới cân nhắc Easy IELTS.",
-  },
-  {
-    id: "ielts",
-    label: "IELTS & đại học",
-    title: "Giải thích vai trò của IELTS",
-    text: "IELTS không phải đích đến duy nhất, nhưng có thể mở rộng lựa chọn trên hành trình vào đại học: hỗ trợ đáp ứng chuẩn đầu vào, tăng lựa chọn chương trình đào tạo và tạo nền tảng học thuật bằng tiếng Anh. Điều quan trọng là xác định band mục tiêu, thời gian chuẩn bị và năng lực hiện tại trước khi chọn lộ trình.",
-  },
-  {
-    id: "uncertain",
-    label: "Chưa đủ dữ liệu",
-    title: "Khi chưa thể kết luận",
-    text: "Thông tin hiện tại chưa đủ để kết luận con phù hợp với khóa nào. Mình nên đánh giá đầu vào và làm rõ mục tiêu ưu tiên trước. Sau khi có kết quả, em sẽ đối chiếu khoảng cách từ năng lực hiện tại tới mục tiêu để tư vấn lộ trình sát hơn, tránh học quá dễ hoặc quá sức.",
   },
 ];
 
-const faqs = [
-  {
-    q: "Con còn nhỏ, học Cambridge có tạo áp lực không?",
-    a: "Cambridge YLE là khung tham chiếu năng lực phù hợp với trẻ em. Áp lực thường đến từ cách học quá thiên về luyện đề. Nên ưu tiên xây từ vựng, phát âm, nghe hiểu và phản xạ qua hoạt động gần gũi; chỉ làm quen dạng thi khi nền tảng đã sẵn sàng.",
-  },
-  {
-    q: "Học SpeakWell có phải chỉ để luyện thi chứng chỉ?",
-    a: "Không. SpeakWell lấy năng lực bốn kỹ năng làm nền tảng và dùng Beginners, Starters, Movers, Flyers làm các cột mốc. Mục tiêu là giúp trẻ sử dụng tiếng Anh ngày càng độc lập; chứng chỉ là một cách ghi nhận tiến bộ.",
-  },
-  {
-    q: "Tại sao không học IELTS càng sớm càng tốt?",
-    a: "IELTS đòi hỏi nền tảng ngôn ngữ, tư duy học thuật và mức độ trưởng thành nhất định. Học quá sớm khi nền tảng chưa vững dễ biến thành học mẹo. Cần nhìn đồng thời độ tuổi, trình độ, mục tiêu band và thời gian sử dụng kết quả.",
-  },
-  {
-    q: "Con 12 tuổi nên học SpeakWell hay Easy PASS?",
-    a: "Đây là tuổi chuyển tiếp nên không quyết định chỉ bằng tuổi. Nếu con vẫn cần hoàn thiện chặng YLE hoặc đang ở Pre A1–A1, có thể tiếp tục SpeakWell. Nếu con đã có nền tảng phù hợp và cần tiếng Anh tổng quát cho giai đoạn THCS, Easy PASS thường hợp lý hơn.",
-  },
-  {
-    q: "Con làm bài khá nhưng vẫn ngại giao tiếp, xử lý thế nào?",
-    a: "Đây thường là khoảng cách giữa kiến thức và khả năng sử dụng. Con cần được nghe đủ, nói trong tình huống có ý nghĩa, nhận phản hồi đúng lúc và lặp lại thường xuyên trong môi trường không sợ sai.",
-  },
-  {
-    q: "Làm sao biết con đang thực sự tiến bộ?",
-    a: "Không chỉ nhìn điểm. Hãy theo dõi khả năng nghe hiểu, độ dài và rõ ràng của câu nói, mức độ chủ động, khả năng vận dụng kiến thức vào tình huống mới và kết quả đánh giá định kỳ.",
-  },
-];
-
-function getRecommendation(answers: AdvisorAnswers): Recommendation {
-  const young = answers.age === "4-6" || answers.age === "7-11";
-  const transitionAge = answers.age === "12";
-  const teen = answers.age === "13-15" || answers.age === "16-18";
-  const weakFoundation =
-    answers.level === "unknown" ||
-    answers.level === "beginner" ||
-    answers.level === "preA1";
-  const hasIELTSBase =
-    answers.level === "A1" ||
-    answers.level === "A2" ||
-    answers.level === "B1plus";
-  const academicGoal =
-    answers.goal === "IELTS" || answers.goal === "university";
-
-  if (
-    young ||
-    (transitionAge &&
-      (answers.goal === "YLE" ||
-        answers.level === "preA1" ||
-        answers.level === "A1"))
-  ) {
-    const caution = academicGoal
-      ? "Gia đình đang quan tâm IELTS, nhưng ở chặng này nên xác lập nền tảng và mốc năng lực gần nhất trước."
-      : "Đối chiếu thêm trình độ thực tế để chọn đúng Beginners, Starters, Movers hoặc Flyers.";
-    return {
-      product: "speakwell",
-      label: "Ưu tiên",
-      stage: "Cambridge Young Learners",
-      title: "Xây nền tảng với SpeakWell",
-      summary:
-        "Hồ sơ đang phù hợp với lộ trình phát triển bốn kỹ năng theo Cambridge YLE, chú trọng sử dụng tiếng Anh trước khi đặt nặng luyện đề.",
-      reasons: [
-        "Độ tuổi phù hợp với học liệu và hoạt động ngôn ngữ dành cho trẻ.",
-        answers.goal === "YLE"
-          ? "Mục tiêu gia đình trùng với lộ trình Beginners → Starters → Movers → Flyers."
-          : "Nền tảng ở chặng Pre A1–A2 cần được củng cố đồng đều bốn kỹ năng.",
-        answers.challenge === "confidence"
-          ? "Lớp học tương tác, LMS và công cụ luyện nói hỗ trợ tăng cơ hội thực hành."
-          : "Mô hình 7E giúp trẻ khám phá, thực hành, đánh giá và mở rộng kiến thức.",
-      ],
-      checks: [
-        caution,
-        "Không suy ra cấp độ chỉ từ tuổi hoặc điểm tiếng Anh trên trường.",
-      ],
-      questions: [
-        "Con đã từng học hoặc thi Starters, Movers, Flyers chưa?",
-        "Con có thể nghe hiểu và trả lời câu hỏi quen thuộc ở mức nào?",
-        "Gia đình ưu tiên giao tiếp, nền tảng hay một mốc chứng chỉ cụ thể?",
-      ],
-      script:
-        "Với độ tuổi và nền tảng hiện tại, em đề xuất gia đình ưu tiên SpeakWell để con phát triển đồng đều Nghe, Nói, Đọc, Viết theo lộ trình Cambridge YLE. Mình sẽ xác định đúng cấp độ trước, sau đó mới đặt mốc Starters, Movers hoặc Flyers phù hợp để con tiến bộ mà không bị quá sức.",
-      secondary:
-        academicGoal
-          ? "Hướng dài hạn: hoàn thiện A2/Flyers rồi đánh giá mức sẵn sàng cho IELTS."
-          : undefined,
-    };
-  }
-
-  if ((transitionAge || teen) && academicGoal && hasIELTSBase) {
-    return {
-      product: "easyielts",
-      label: "Ưu tiên",
-      stage: "IELTS & định hướng đại học",
-      title: "Cân nhắc Easy IELTS",
-      summary:
-        "Học sinh đã có nền tảng tối thiểu và mục tiêu IELTS tương đối rõ. Bước tiếp theo là xác định band hiện tại, band mục tiêu và quỹ thời gian.",
-      reasons: [
-        "Mục tiêu học tập gắn trực tiếp với IELTS hoặc hành trình vào đại học.",
-        "Nền tảng khai báo đủ để cân nhắc lộ trình IELTS theo cấp độ.",
-        answers.challenge === "exam"
-          ? "Nhu cầu trọng tâm là chiến lược, cấu trúc và kỹ năng làm bài."
-          : "Chương trình kết hợp lớp live, tự luyện và đánh giá tiến bộ theo lộ trình.",
-      ],
-      checks: [
-        "Cần đánh giá đầu vào trước khi chọn Introduction, Foundation, Preparation, Intensive hoặc Master.",
-        "Chốt band mục tiêu, thời điểm cần chứng chỉ và thời lượng học có thể duy trì.",
-      ],
-      questions: [
-        "Học sinh đã có kết quả IELTS hoặc bài đánh giá gần nhất chưa?",
-        "Band mục tiêu và thời điểm cần sử dụng chứng chỉ là khi nào?",
-        "Kỹ năng nào đang tạo khoảng cách lớn nhất tới mục tiêu?",
-      ],
-      script:
-        "Vì con đã có nền tảng và mục tiêu IELTS rõ, em đề xuất đánh giá đầu vào để xác định band hiện tại, khoảng cách tới band mục tiêu và cấp độ Easy IELTS phù hợp. Sau đó mình mới chốt lộ trình, tránh học theo tuổi hoặc chọn lớp cao hơn năng lực thực tế.",
-    };
-  }
-
-  if ((transitionAge || teen) && academicGoal && weakFoundation) {
-    return {
-      product: "easypass",
-      label: "Xây nền trước",
-      stage: "Cầu nối tới IELTS",
-      title: "Củng cố với Easy PASS trước IELTS",
-      summary:
-        "Mục tiêu IELTS là hợp lý, nhưng dữ liệu hiện tại cho thấy cần làm chắc nền tảng tiếng Anh tổng quát trước khi chuyển sang luyện thi chuyên sâu.",
-      reasons: [
-        "Học sinh ở độ tuổi Teens nhưng nền tảng hiện tại chưa được xác định chắc chắn.",
-        "Easy PASS phát triển bốn kỹ năng từ A1 đến B2 và bổ trợ khả năng học tập.",
-        "Xây nền trước giúp giảm phụ thuộc vào mẹo và tăng khả năng theo lộ trình IELTS bền vững.",
-      ],
-      checks: [
-        "Tổ chức đánh giá đầu vào để xác nhận có thực sự mất gốc hay chỉ lệch kỹ năng.",
-        "Xác định mốc chuyển tiếp sang IELTS dựa trên năng lực, không dựa riêng vào thời gian học.",
-      ],
-      questions: [
-        "Con đang gặp khó ở kiến thức nền hay ở riêng một kỹ năng?",
-        "Mục tiêu IELTS là dài hạn hay cần kết quả trong 6–12 tháng?",
-        "Con có thể duy trì việc tự luyện ngoài giờ học đến mức nào?",
-      ],
-      script:
-        "Gia đình có thể giữ IELTS là mục tiêu dài hạn, nhưng trước mắt con cần củng cố nền tảng bốn kỹ năng. Em đề xuất đánh giá đầu vào và cân nhắc Easy PASS trước; khi năng lực đã đủ vững, mình chuyển sang Easy IELTS sẽ hiệu quả và ít áp lực hơn.",
-      secondary: "Hướng tiếp theo: chuyển Easy IELTS khi đạt nền tảng phù hợp và có band mục tiêu rõ.",
-    };
-  }
-
-  return {
-    product: "easypass",
-    label: "Ưu tiên",
-    stage: "General English cho tuổi Teens",
-    title: "Phát triển toàn diện với Easy PASS",
-    summary:
-      "Hồ sơ phù hợp với lộ trình tiếng Anh tổng quát cho học sinh 12–18 tuổi, cân bằng bốn kỹ năng và hỗ trợ việc học ở trường.",
-    reasons: [
-      "Mục tiêu ưu tiên là năng lực tổng quát hoặc kết quả học tập, chưa cần luyện thi IELTS chuyên sâu.",
-      "Lộ trình A1–B2 tạo cầu nối từ nền tảng cơ bản tới khả năng sử dụng độc lập.",
-      answers.challenge === "confidence"
-        ? "Hoạt động theo tình huống giúp chuyển kiến thức thành khả năng giao tiếp."
-        : "Phương pháp 7E, học theo nhiệm vụ và LMS tăng thời lượng thực hành.",
-    ],
-    checks: [
-      "Đánh giá đầu vào để xác định đúng cấp độ A1, A2, B1 hoặc B2.",
-      "Làm rõ ưu tiên giữa bổ trợ học trên trường, giao tiếp và chứng chỉ dài hạn.",
-    ],
-    questions: [
-      "Điểm yếu hiện tại nằm ở kiến thức trên trường hay khả năng sử dụng tiếng Anh?",
-      "Con cần cải thiện kỹ năng nào rõ nhất trong 3–6 tháng tới?",
-      "Gia đình có mục tiêu chứng chỉ nào sau khi nền tảng ổn định không?",
-    ],
-    script:
-      "Với độ tuổi và mục tiêu hiện tại, Easy PASS phù hợp hơn vì con cần phát triển đồng đều bốn kỹ năng và củng cố khả năng học tiếng Anh ở giai đoạn Teens. Mình nên đánh giá đầu vào để chọn đúng cấp độ A1–B2, rồi mới chốt mục tiêu gần và lộ trình tiếp theo.",
-  };
-}
-
-function BrandMark() {
+function Brand() {
   return (
     <div className="brand-mark" aria-label="GE English Advisor">
       <img
@@ -357,87 +503,598 @@ function BrandMark() {
   );
 }
 
-function CopyButton({
-  text,
-  compact = false,
-}: {
-  text: string;
-  compact?: boolean;
-}) {
-  const [copied, setCopied] = useState(false);
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+}
 
-  async function copyText() {
-    try {
-      if (!navigator.clipboard || !window.isSecureContext) {
-        throw new Error("Clipboard API unavailable");
-      }
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      document.execCommand("copy");
-      textarea.remove();
-    }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
+function LevelExplorer({
+  levels,
+  tone,
+}: {
+  levels: JourneyLevel[];
+  tone: Tone;
+}) {
+  const [active, setActive] = useState(levels[0]);
+  return (
+    <div className={`level-explorer ${tone}`}>
+      <div className="level-pills" role="tablist" aria-label="Chọn trình độ">
+        {levels.map((level) => (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={active.id === level.id}
+            className={active.id === level.id ? "active" : ""}
+            onClick={() => setActive(level)}
+            key={level.id}
+          >
+            <strong>{level.label}</strong>
+            <small>{level.sub}</small>
+          </button>
+        ))}
+      </div>
+      <article className="level-detail" key={active.id}>
+        <div>
+          <span className="detail-label">Đặc điểm học sinh</span>
+          <p>{active.profile}</p>
+        </div>
+        <div>
+          <span className="detail-label">Năng lực có thể kỳ vọng</span>
+          <p>{active.canDo}</p>
+        </div>
+        <div className="counsel-point">
+          <span className="detail-label">Điểm nhấn khi tư vấn</span>
+          <p>{active.counsel}</p>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function Pathway() {
+  const [stage, setStage] = useState<"yle" | "general" | "ielts">("yle");
+  const current =
+    stage === "yle"
+      ? { levels: yleLevels, tone: "green" as Tone }
+      : stage === "general"
+        ? { levels: generalLevels, tone: "blue" as Tone }
+        : { levels: ieltsLevels, tone: "pink" as Tone };
 
   return (
-    <button
-      className={compact ? "copy-button compact" : "copy-button"}
-      onClick={copyText}
-      type="button"
-    >
-      {copied ? <Check size={17} /> : <Clipboard size={17} />}
-      {copied ? "Đã sao chép" : "Sao chép"}
+    <section className="content-section pathway-section" id="pathway">
+      <div className="section-shell">
+        <div className="section-heading split-heading reveal">
+          <div>
+            <span className="section-kicker">Bản đồ năng lực tương tác</span>
+            <h2>Một hành trình, nhìn rõ từng chặng phát triển</h2>
+          </div>
+          <p>
+            Chọn từng chặng và trình độ để xem đặc điểm học sinh, năng lực có
+            thể kỳ vọng và luận điểm Đại sứ nên sử dụng.
+          </p>
+        </div>
+
+        <div className="animated-route reveal" aria-label="Bản đồ lộ trình">
+          <div className="route-line">
+            <span />
+          </div>
+          {[
+            {
+              id: "yle",
+              no: "01",
+              label: "Cambridge YLE",
+              title: "Xây nền tảng",
+              sub: "Beginners → A2 Flyers",
+              product: "SpeakWell · 7-12 tuổi",
+            },
+            {
+              id: "general",
+              no: "02",
+              label: "General English",
+              title: "Phát triển toàn diện",
+              sub: "A1 → B2",
+              product: "Easy PASS · 12-18 tuổi",
+            },
+            {
+              id: "ielts",
+              no: "03",
+              label: "IELTS & đại học",
+              title: "Học theo mục tiêu",
+              sub: "2.0 → 7.0+",
+              product: "Easy IELTS · từ 12 tuổi",
+            },
+          ].map((item, index) => (
+            <button
+              type="button"
+              key={item.id}
+              className={`route-stage ${item.id} ${stage === item.id ? "active" : ""}`}
+              onClick={() => setStage(item.id as typeof stage)}
+              style={{ animationDelay: `${index * 140}ms` }}
+            >
+              <span className="route-node">{item.no}</span>
+              <small>{item.label}</small>
+              <strong>{item.title}</strong>
+              <p>{item.sub}</p>
+              <em>{item.product}</em>
+            </button>
+          ))}
+        </div>
+
+        <div className="stage-explainer reveal">
+          <div className="explainer-head">
+            <span>
+              {stage === "yle"
+                ? "Cambridge Young Learners"
+                : stage === "general"
+                  ? "Khung CEFR"
+                  : "Lộ trình Easy IELTS"}
+            </span>
+            <strong>Nhấn vào từng trình độ để xem hồ sơ tư vấn</strong>
+          </div>
+          <LevelExplorer levels={current.levels} tone={current.tone} />
+        </div>
+
+        <div className="transition-callout reveal">
+          <span className="callout-icon">💡</span>
+          <div>
+            <strong>Điểm chuyển tiếp cần tư vấn kỹ</strong>
+            <p>
+              Sau Flyers hoặc ở tuổi 12, không mặc định chuyển thẳng sang IELTS.
+              Nếu ưu tiên tiếng Anh tổng quát và học trên trường, cân nhắc Easy
+              PASS; nếu đã có nền tảng, band mục tiêu và thời hạn rõ, mới cân
+              nhắc Easy IELTS.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Advisor() {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [done, setDone] = useState(false);
+  const question = advisorQuestions[step];
+
+  const recommendation = useMemo(() => {
+    if (!done) return null;
+    const { age, level, goal, timeline } = answers;
+    if (level === "unknown" || goal === "unclear" || timeline === "unknown") {
+      return {
+        product: "Chưa nên chốt sản phẩm",
+        reason:
+          "Hồ sơ còn thiếu dữ liệu về trình độ, mục tiêu hoặc mốc thời gian. Bước có trách nhiệm nhất là đánh giá đầu vào và làm rõ ưu tiên.",
+        action:
+          "Mời học sinh đánh giá đầu vào; hỏi thêm điểm mạnh/yếu theo bốn kỹ năng và mục tiêu 6-12 tháng.",
+        tone: "neutral",
+      };
+    }
+    if (
+      goal === "cambridge" ||
+      (age === "7-11" && (level === "yle" || level === "a2"))
+    ) {
+      return {
+        product: "SpeakWell",
+        reason:
+          "Học sinh thuộc nhóm 7-12 tuổi và cần xây nền Cambridge YLE, phát triển đồng đều bốn kỹ năng trước khi chuyển sang mục tiêu học thuật.",
+        action:
+          "Xác định đúng Beginners/Starters/Movers/Flyers và thống nhất năng lực mục tiêu có thể quan sát.",
+        tone: "green",
+      };
+    }
+    if (
+      goal === "general" ||
+      (age !== "7-11" && (level === "yle" || level === "a2"))
+    ) {
+      return {
+        product: "Easy PASS",
+        reason:
+          "Mục tiêu trọng tâm là tiếng Anh tổng quát cho giai đoạn Teens, hỗ trợ bốn kỹ năng và tạo cầu nối từ A1/A2 lên B1/B2.",
+        action:
+          "Đánh giá mức CEFR, xác định kỹ năng nghẽn và chọn hình thức lớp phù hợp khả năng duy trì.",
+        tone: "blue",
+      };
+    }
+    return {
+      product: "Easy IELTS",
+      reason:
+        "Học sinh có nền tảng và mục tiêu IELTS/đại học tương đối rõ. Lộ trình nên được thiết kế theo band hiện tại, band mục tiêu và quỹ thời gian.",
+      action:
+        "Xác minh kết quả đầu vào, kỹ năng thấp nhất và thời điểm cần chứng chỉ trước khi chọn chặng học.",
+      tone: "pink",
+    };
+  }, [answers, done]);
+
+  const reset = () => {
+    setStep(0);
+    setAnswers({});
+    setDone(false);
+  };
+
+  return (
+    <section className="content-section advisor-section" id="advisor">
+      <div className="section-shell">
+        <div className="section-heading centered-heading reveal">
+          <span className="section-kicker">Trợ lý tư vấn nhanh</span>
+          <h2>Gợi ý hướng tư vấn trong khoảng 60 giây</h2>
+          <p>
+            Kết quả luôn đi kèm lý do đề xuất và bước cần kiểm tra thêm, không
+            thay thế đánh giá đầu vào.
+          </p>
+        </div>
+        <div className="advisor-card reveal">
+          {!done ? (
+            <>
+              <div className="advisor-progress">
+                <div className="progress-meta">
+                  <span>
+                    Câu {step + 1}/{advisorQuestions.length}
+                  </span>
+                  <strong>
+                    {Math.round(((step + 1) / advisorQuestions.length) * 100)}%
+                  </strong>
+                </div>
+                <div className="progress-track">
+                  <span
+                    style={{
+                      width: `${((step + 1) / advisorQuestions.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="question-block">
+                <h3>{question.title}</h3>
+                <p>{question.note}</p>
+                <div className="option-grid">
+                  {question.options.map(([value, label, note]) => (
+                    <button
+                      className={`option ${answers[question.key] === value ? "selected" : ""}`}
+                      onClick={() =>
+                        setAnswers((old) => ({
+                          ...old,
+                          [question.key]: value,
+                        }))
+                      }
+                      type="button"
+                      key={value}
+                    >
+                      <span className="option-radio" />
+                      <span>
+                        <strong>{label}</strong>
+                        <small>{note}</small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="advisor-actions">
+                <button
+                  className="text-button"
+                  disabled={step === 0}
+                  onClick={() => setStep((n) => n - 1)}
+                  type="button"
+                >
+                  Quay lại
+                </button>
+                <button
+                  className="primary-button"
+                  disabled={!answers[question.key]}
+                  onClick={() =>
+                    step === advisorQuestions.length - 1
+                      ? setDone(true)
+                      : setStep((n) => n + 1)
+                  }
+                  type="button"
+                >
+                  {step === advisorQuestions.length - 1
+                    ? "Xem gợi ý"
+                    : "Tiếp tục"}{" "}
+                  →
+                </button>
+              </div>
+            </>
+          ) : (
+            recommendation && (
+              <div className={`advisor-result ${recommendation.tone}`}>
+                <div className="result-kicker">Định hướng ban đầu</div>
+                <h3>{recommendation.product}</h3>
+                <div className="result-grid">
+                  <div>
+                    <strong>Vì sao phù hợp?</strong>
+                    <p>{recommendation.reason}</p>
+                  </div>
+                  <div>
+                    <strong>Bước tiếp theo</strong>
+                    <p>{recommendation.action}</p>
+                  </div>
+                </div>
+                <div className="result-actions">
+                  <button className="secondary-button" onClick={reset}>
+                    Làm lại
+                  </button>
+                  <button
+                    className="primary-button"
+                    onClick={() => scrollToId("scripts")}
+                  >
+                    Lấy kịch bản tư vấn →
+                  </button>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProductLibrary() {
+  const [activeId, setActiveId] = useState(products[0].id);
+  const active = products.find((product) => product.id === activeId)!;
+  return (
+    <section className="content-section products-section" id="products">
+      <div className="section-shell">
+        <div className="section-heading split-heading reveal">
+          <div>
+            <span className="section-kicker">Thư viện sản phẩm chuyên sâu</span>
+            <h2>Key tư vấn theo nhu cầu, bằng chứng và điểm loại trừ</h2>
+          </div>
+          <p>
+            Mỗi hồ sơ sản phẩm gồm tín hiệu khách hàng, luận điểm nổi bật, câu
+            hỏi chẩn đoán và bước chốt phù hợp.
+          </p>
+        </div>
+        <div className="product-switcher reveal" role="tablist">
+          {products.map((product) => (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeId === product.id}
+              className={`${product.tone} ${activeId === product.id ? "active" : ""}`}
+              onClick={() => setActiveId(product.id)}
+              key={product.id}
+            >
+              <small>{product.tag}</small>
+              <strong>{product.name}</strong>
+            </button>
+          ))}
+        </div>
+        <article
+          className={`product-dossier ${active.tone} reveal`}
+          key={active.id}
+        >
+          <header>
+            <div>
+              <span>{active.tag}</span>
+              <h3>{active.name}</h3>
+            </div>
+            <p>{active.intro}</p>
+          </header>
+          <div className="dossier-grid">
+            <section className="signal-panel">
+              <h4>Tín hiệu nên tư vấn</h4>
+              <ul>
+                {active.signals.map((signal) => (
+                  <li key={signal}>✓ {signal}</li>
+                ))}
+              </ul>
+            </section>
+            <section className="key-panel">
+              <h4>Key nổi bật để giải thích giá trị</h4>
+              <div className="key-grid">
+                {active.keys.map((key) => (
+                  <div key={key.title}>
+                    <strong>{key.title}</strong>
+                    <p>{key.text}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="question-panel">
+              <h4>Bốn câu cần hỏi trước khi đề xuất</h4>
+              <ol>
+                {active.questions.map((question) => (
+                  <li key={question}>{question}</li>
+                ))}
+              </ol>
+            </section>
+            <section className="decision-panel">
+              <div className="avoid-box">
+                <strong>Không nên ưu tiên khi</strong>
+                <p>{active.avoid}</p>
+              </div>
+              <div className="close-box">
+                <strong>Bước chốt học thuật</strong>
+                <p>{active.close}</p>
+              </div>
+            </section>
+          </div>
+        </article>
+        <div className="source-note reveal">
+          <span>ⓘ</span>
+          <span>
+            Học phí, ưu đãi, lịch khai giảng và cấu hình lớp có thể thay đổi.
+            Đại sứ cần kiểm tra thông báo vận hành mới nhất trước khi xác nhận
+            với phụ huynh.
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+  return (
+    <button className="copy-button" onClick={copy} type="button">
+      {copied ? "✓ Đã sao chép" : "▣ Sao chép"}
     </button>
   );
 }
 
-export default function Home() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [advisorStep, setAdvisorStep] = useState(0);
-  const [answers, setAnswers] = useState<AdvisorAnswers>(initialAnswers);
-  const [showResult, setShowResult] = useState(false);
-  const [activeScript, setActiveScript] = useState(scripts[0].id);
+function ScriptLibrary() {
+  const groups = [...new Set(scripts.map((script) => script.group))];
+  const [group, setGroup] = useState(groups[0]);
+  const available = scripts.filter((script) => script.group === group);
+  const [title, setTitle] = useState(available[0].title);
+  const current =
+    scripts.find((script) => script.title === title) ?? available[0];
 
-  const recommendation = useMemo(() => getRecommendation(answers), [answers]);
-  const currentQuestion = questions[advisorStep];
-  const currentValue =
-    answers[currentQuestion.key as keyof AdvisorAnswers] || "";
-  const activeScriptData =
-    scripts.find((script) => script.id === activeScript) ?? scripts[0];
+  const chooseGroup = (next: string) => {
+    setGroup(next);
+    setTitle(scripts.find((script) => script.group === next)!.title);
+  };
 
-  function selectAnswer(key: keyof AdvisorAnswers, value: string) {
-    setAnswers((previous) => ({ ...previous, [key]: value }));
-  }
+  return (
+    <section className="content-section scripts-section" id="scripts">
+      <div className="section-shell">
+        <div className="section-heading centered-heading reveal">
+          <span className="section-kicker">Kịch bản dùng ngay</span>
+          <h2>Từ khai thác nhu cầu đến chốt bước tiếp theo</h2>
+          <p>
+            Nội dung giữ vai trò tư vấn, có căn cứ và tôn trọng quyền quyết định
+            của phụ huynh. Hãy cá nhân hóa trước khi gửi.
+          </p>
+        </div>
+        <div className="script-library reveal">
+          <div className="script-groups" role="tablist">
+            {groups.map((item) => (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={group === item}
+                className={group === item ? "active" : ""}
+                onClick={() => chooseGroup(item)}
+                key={item}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <div className="script-layout">
+            <div className="script-list">
+              {available.map((script) => (
+                <button
+                  type="button"
+                  className={current.title === script.title ? "active" : ""}
+                  onClick={() => setTitle(script.title)}
+                  key={script.title}
+                >
+                  <span>{script.title}</span>
+                  <em>→</em>
+                </button>
+              ))}
+            </div>
+            <article className="script-preview" key={current.title}>
+              <div className="script-preview-top">
+                <div className="zalo-avatar">GE</div>
+                <div>
+                  <small>Kịch bản đề xuất</small>
+                  <h3>{current.title}</h3>
+                </div>
+              </div>
+              <div className="message-bubble">{current.text}</div>
+              <div className="script-preview-footer">
+                <span>ⓘ Cá nhân hóa tên, trình độ và mục tiêu trước khi gửi</span>
+                <CopyButton text={current.text} />
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-  function nextStep() {
-    if (!currentValue) return;
-    if (advisorStep === questions.length - 1) {
-      setShowResult(true);
-      return;
-    }
-    setAdvisorStep((step) => step + 1);
-  }
+function ObjectionLibrary() {
+  const [query, setQuery] = useState("");
+  const filtered = objections.filter((item) =>
+    `${item.q} ${item.answer}`.toLowerCase().includes(query.toLowerCase()),
+  );
+  return (
+    <section className="content-section faq-section" id="faq">
+      <div className="section-shell">
+        <div className="objection-header reveal">
+          <div className="faq-intro">
+            <span className="section-kicker">Xử lý phản đối</span>
+            <h2>Khéo léo trong cách nói, chặt chẽ trong lập luận</h2>
+            <p>
+              Không phủ nhận lo lắng của phụ huynh. Ghi nhận, làm rõ dữ liệu,
+              giải thích bằng logic học tập và đề xuất một bước tiếp theo có
+              mức cam kết thấp.
+            </p>
+            <div className="faq-principle">
+              <span>💡</span>
+              <span>
+                <strong>Ghi nhận → Làm rõ → Giải thích → Đề xuất</strong>
+              </span>
+            </div>
+          </div>
+          <label className="objection-search">
+            <span>Tìm nhanh tình huống</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Ví dụ: học phí, IELTS sớm, mất gốc..."
+            />
+          </label>
+        </div>
+        <div className="faq-list objection-grid reveal">
+          {filtered.map((item, index) => (
+            <details open={index === 0 && !query} key={item.q}>
+              <summary>
+                <span>{item.q}</span>
+                <span className="faq-plus">+</span>
+              </summary>
+              <div className="objection-answer">
+                <p>{item.answer}</p>
+                <div>
+                  <strong>Bước nối tiếp:</strong> {item.next}
+                </div>
+                <CopyButton text={`${item.answer}\n\n${item.next}`} />
+              </div>
+            </details>
+          ))}
+          {filtered.length === 0 && (
+            <div className="empty-state">
+              Chưa có tình huống khớp. Thử từ khóa khác như “online”, “band”,
+              “học phí” hoặc “12 tuổi”.
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-  function resetAdvisor() {
-    setAnswers(initialAnswers);
-    setAdvisorStep(0);
-    setShowResult(false);
-  }
+export default function Page() {
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  function scrollTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    setMobileOpen(false);
-  }
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("is-visible");
+        });
+      },
+      { threshold: 0.12 },
+    );
+    document
+      .querySelectorAll(".reveal")
+      .forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, []);
 
-  const product = productMeta[recommendation.product];
+  const go = (id: string) => {
+    setMenuOpen(false);
+    scrollToId(id);
+  };
 
   return (
     <main>
@@ -446,51 +1103,15 @@ export default function Home() {
           <button
             className="brand-button"
             type="button"
-            onClick={() => scrollTo("top")}
             aria-label="Về đầu trang"
+            onClick={() => go("top")}
           >
-            <BrandMark />
+            <Brand />
           </button>
-
-          <nav className="desktop-nav" aria-label="Điều hướng chính">
-            <button onClick={() => scrollTo("pathway")} type="button">
-              Bản đồ lộ trình
-            </button>
-            <button onClick={() => scrollTo("advisor")} type="button">
-              Gợi ý tư vấn
-            </button>
-            <button onClick={() => scrollTo("products")} type="button">
-              Sản phẩm
-            </button>
-            <button onClick={() => scrollTo("scripts")} type="button">
-              Kịch bản
-            </button>
-            <button onClick={() => scrollTo("faq")} type="button">
-              Xử lý phản đối
-            </button>
-          </nav>
-
-          <button
-            className="header-cta"
-            onClick={() => scrollTo("advisor")}
-            type="button"
+          <nav
+            className={`desktop-nav ${menuOpen ? "mobile-open" : ""}`}
+            aria-label="Điều hướng chính"
           >
-            Bắt đầu tư vấn
-            <ArrowRight size={17} />
-          </button>
-
-          <button
-            className="menu-button"
-            onClick={() => setMobileOpen((open) => !open)}
-            type="button"
-            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
-          >
-            {mobileOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-
-        {mobileOpen && (
-          <nav className="mobile-nav" aria-label="Điều hướng di động">
             {[
               ["pathway", "Bản đồ lộ trình"],
               ["advisor", "Gợi ý tư vấn"],
@@ -498,13 +1119,28 @@ export default function Home() {
               ["scripts", "Kịch bản"],
               ["faq", "Xử lý phản đối"],
             ].map(([id, label]) => (
-              <button key={id} onClick={() => scrollTo(id)} type="button">
+              <button onClick={() => go(id)} type="button" key={id}>
                 {label}
-                <ChevronRight size={18} />
               </button>
             ))}
           </nav>
-        )}
+          <button
+            className="header-cta"
+            type="button"
+            onClick={() => go("advisor")}
+          >
+            Bắt đầu tư vấn →
+          </button>
+          <button
+            className="menu-button"
+            type="button"
+            aria-label="Mở menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            ☰
+          </button>
+        </div>
       </header>
 
       <section className="hero" id="top">
@@ -519,8 +1155,7 @@ export default function Home() {
         <div className="section-shell hero-grid">
           <div className="hero-copy">
             <div className="eyebrow">
-              <Sparkles size={16} />
-              Sổ tay tư vấn thông minh dành cho Đại sứ
+              ✦ Sổ tay tư vấn thông minh dành cho Đại sứ
             </div>
             <h1>
               Từ nhu cầu của học sinh đến{" "}
@@ -534,28 +1169,24 @@ export default function Home() {
             <div className="hero-actions">
               <button
                 className="primary-button"
-                onClick={() => scrollTo("advisor")}
+                onClick={() => go("advisor")}
                 type="button"
               >
-                <Compass size={19} />
-                Gợi ý hướng tư vấn
+                ◉ Gợi ý hướng tư vấn
               </button>
               <button
                 className="secondary-button"
-                onClick={() => scrollTo("pathway")}
+                onClick={() => go("pathway")}
                 type="button"
               >
-                Xem bản đồ lộ trình
-                <ArrowRight size={18} />
+                Xem bản đồ lộ trình →
               </button>
             </div>
             <div className="hero-note">
-              <Info size={17} />
-              Công cụ đưa ra định hướng ban đầu, không thay thế kết quả đánh giá
-              đầu vào.
+              ⓘ Công cụ đưa ra định hướng ban đầu, không thay thế kết quả đánh
+              giá đầu vào.
             </div>
           </div>
-
           <div className="hero-panel">
             <div className="panel-topline">
               <div>
@@ -563,42 +1194,30 @@ export default function Home() {
                 <strong>Học sinh đang ở chặng nào?</strong>
               </div>
               <div className="live-pill">
-                <span />
-                Sẵn sàng
+                <span /> Sẵn sàng
               </div>
             </div>
-
             <div className="mini-path">
               <article className="mini-card green">
-                <span className="mini-icon">
-                  <Headphones size={20} />
-                </span>
+                <span className="mini-icon">🎧</span>
                 <div>
-                  <small>4–12 tuổi</small>
+                  <small>7-12 tuổi</small>
                   <strong>Cambridge YLE</strong>
                   <p>Beginners → Flyers</p>
                 </div>
               </article>
-              <div className="path-connector">
-                <ArrowRight size={18} />
-              </div>
+              <div className="path-connector">→</div>
               <article className="mini-card blue">
-                <span className="mini-icon">
-                  <BookOpenText size={20} />
-                </span>
+                <span className="mini-icon">📖</span>
                 <div>
-                  <small>12–18 tuổi</small>
+                  <small>12-18 tuổi</small>
                   <strong>General English</strong>
                   <p>A1 → B2</p>
                 </div>
               </article>
-              <div className="path-connector">
-                <ArrowRight size={18} />
-              </div>
+              <div className="path-connector">→</div>
               <article className="mini-card pink">
-                <span className="mini-icon">
-                  <GraduationCap size={20} />
-                </span>
+                <span className="mini-icon">🎓</span>
                 <div>
                   <small>Từ 12 tuổi</small>
                   <strong>IELTS</strong>
@@ -606,14 +1225,12 @@ export default function Home() {
                 </div>
               </article>
             </div>
-
             <button
               className="panel-action"
-              onClick={() => scrollTo("advisor")}
+              onClick={() => go("advisor")}
               type="button"
             >
-              Nhập hồ sơ học sinh
-              <ArrowRight size={18} />
+              Nhập hồ sơ học sinh →
             </button>
           </div>
         </div>
@@ -623,602 +1240,48 @@ export default function Home() {
         <div className="section-shell">
           <div className="quick-grid">
             {[
-              {
-                icon: Route,
-                title: "Xem lộ trình",
-                text: "Giải thích YLE, CEFR và IELTS trên cùng một bản đồ.",
-                id: "pathway",
-                color: "green",
-              },
-              {
-                icon: Compass,
-                title: "Gợi ý tư vấn",
-                text: "Chọn hồ sơ và nhận hướng tư vấn có giải thích.",
-                id: "advisor",
-                color: "pink",
-              },
-              {
-                icon: Search,
-                title: "Tra cứu sản phẩm",
-                text: "Đúng đối tượng, mục tiêu và trường hợp không nên ép bán.",
-                id: "products",
-                color: "blue",
-              },
-              {
-                icon: MessageCircleMore,
-                title: "Lấy kịch bản",
-                text: "Sao chép đoạn tư vấn để dùng nhanh trên Zalo.",
-                id: "scripts",
-                color: "yellow",
-              },
-            ].map((item) => (
+              ["green", "pathway", "↝", "Xem lộ trình", "Khám phá từng trình độ và đặc điểm học sinh."],
+              ["pink", "advisor", "◉", "Gợi ý tư vấn", "Nhận đề xuất có giải thích trong 60 giây."],
+              ["blue", "products", "⌕", "Tra cứu sản phẩm", "Lấy key tư vấn, câu hỏi và điểm loại trừ."],
+              ["yellow", "scripts", "☵", "Lấy kịch bản", "Sao chép nội dung khéo léo để dùng trên Zalo."],
+            ].map(([color, id, icon, title, text]) => (
               <button
-                className={`quick-card ${item.color}`}
-                key={item.title}
-                onClick={() => scrollTo(item.id)}
+                className={`quick-card ${color}`}
+                onClick={() => go(id)}
                 type="button"
+                key={id}
               >
-                <span className="quick-icon">
-                  <item.icon size={21} />
-                </span>
+                <span className="quick-icon">{icon}</span>
                 <span>
-                  <strong>{item.title}</strong>
-                  <small>{item.text}</small>
+                  <strong>{title}</strong>
+                  <small>{text}</small>
                 </span>
-                <ChevronRight className="quick-arrow" size={20} />
+                <span className="quick-arrow">›</span>
               </button>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="content-section pathway-section" id="pathway">
-        <div className="section-shell">
-          <div className="section-heading split-heading">
-            <div>
-              <span className="section-kicker">Bản đồ năng lực</span>
-              <h2>Một hành trình, ba chặng phát triển</h2>
-            </div>
-            <p>
-              Không đặt sản phẩm lên trước. Hãy xác định học sinh đang ở đâu,
-              cần đạt năng lực gì tiếp theo, rồi mới chọn chương trình.
-            </p>
-          </div>
-
-          <div className="journey" role="list" aria-label="Hành trình tiếng Anh">
-            <article className="journey-card green-card" role="listitem">
-              <div className="journey-number">01</div>
-              <div className="journey-head">
-                <span className="journey-icon">
-                  <Headphones />
-                </span>
-                <div>
-                  <small>Cambridge Young Learners</small>
-                  <h3>Xây nền tảng</h3>
-                </div>
-              </div>
-              <div className="level-list">
-                <div>
-                  <span>Beginners</span>
-                  <small>Làm quen nền tảng</small>
-                </div>
-                <div>
-                  <span>Pre A1 Starters</span>
-                  <small>Ngôn ngữ rất quen thuộc</small>
-                </div>
-                <div>
-                  <span>A1 Movers</span>
-                  <small>Giao tiếp đơn giản</small>
-                </div>
-                <div>
-                  <span>A2 Flyers</span>
-                  <small>Sử dụng độc lập hơn</small>
-                </div>
-              </div>
-              <div className="journey-product">
-                <strong>SpeakWell</strong>
-                <span>4–12 tuổi</span>
-              </div>
-            </article>
-
-            <div className="journey-arrow" aria-hidden="true">
-              <ArrowRight />
-            </div>
-
-            <article className="journey-card blue-card" role="listitem">
-              <div className="journey-number">02</div>
-              <div className="journey-head">
-                <span className="journey-icon">
-                  <BookOpenText />
-                </span>
-                <div>
-                  <small>General English</small>
-                  <h3>Phát triển toàn diện</h3>
-                </div>
-              </div>
-              <div className="cefr-track">
-                <div>
-                  <span>A1</span>
-                  <i />
-                </div>
-                <div>
-                  <span>A2</span>
-                  <i />
-                </div>
-                <div>
-                  <span>B1</span>
-                  <i />
-                </div>
-                <div>
-                  <span>B2</span>
-                  <i />
-                </div>
-              </div>
-              <ul className="plain-checks">
-                <li>
-                  <Check size={16} /> Cân bằng Nghe, Nói, Đọc, Viết
-                </li>
-                <li>
-                  <Check size={16} /> Hỗ trợ học tập ở giai đoạn Teens
-                </li>
-                <li>
-                  <Check size={16} /> Tạo cầu nối tới mục tiêu học thuật
-                </li>
-              </ul>
-              <div className="journey-product">
-                <strong>Easy PASS</strong>
-                <span>12–18 tuổi</span>
-              </div>
-            </article>
-
-            <div className="journey-arrow" aria-hidden="true">
-              <ArrowRight />
-            </div>
-
-            <article className="journey-card pink-card" role="listitem">
-              <div className="journey-number">03</div>
-              <div className="journey-head">
-                <span className="journey-icon">
-                  <GraduationCap />
-                </span>
-                <div>
-                  <small>IELTS & đại học</small>
-                  <h3>Học theo mục tiêu</h3>
-                </div>
-              </div>
-              <div className="band-track">
-                {["2.0", "3.0", "4.0", "5.0", "6.0", "7.0+"].map((band) => (
-                  <span key={band}>{band}</span>
-                ))}
-              </div>
-              <ul className="plain-checks">
-                <li>
-                  <Check size={16} /> Xác định band hiện tại và mục tiêu
-                </li>
-                <li>
-                  <Check size={16} /> Phát triển kỹ năng học thuật
-                </li>
-                <li>
-                  <Check size={16} /> Chuẩn bị theo quỹ thời gian thực tế
-                </li>
-              </ul>
-              <div className="journey-product">
-                <strong>Easy IELTS</strong>
-                <span>Từ 12 tuổi</span>
-              </div>
-            </article>
-          </div>
-
-          <div className="transition-callout">
-            <span className="callout-icon">
-              <Lightbulb />
-            </span>
-            <div>
-              <strong>Điểm chuyển tiếp cần tư vấn kỹ</strong>
-              <p>
-                Sau Flyers hoặc ở tuổi 12, không mặc định chuyển thẳng sang
-                IELTS. Nếu ưu tiên tiếng Anh tổng quát và học trên trường, cân
-                nhắc Easy PASS; nếu đã có nền tảng và mục tiêu band rõ, mới cân
-                nhắc Easy IELTS.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="content-section advisor-section" id="advisor">
-        <div className="section-shell">
-          <div className="section-heading centered-heading">
-            <span className="section-kicker">Trợ lý tư vấn nhanh</span>
-            <h2>Gợi ý hướng tư vấn trong khoảng 60 giây</h2>
-            <p>
-              Chọn mô tả gần nhất. Kết quả luôn đi kèm lý do đề xuất và thông
-              tin cần kiểm tra thêm.
-            </p>
-          </div>
-
-          <div className="advisor-card">
-            {!showResult ? (
-              <>
-                <div className="advisor-progress">
-                  <div className="progress-meta">
-                    <span>{currentQuestion.eyebrow}</span>
-                    <strong>{Math.round(((advisorStep + 1) / 4) * 100)}%</strong>
-                  </div>
-                  <div className="progress-track">
-                    <span style={{ width: `${((advisorStep + 1) / 4) * 100}%` }} />
-                  </div>
-                </div>
-
-                <div className="question-block">
-                  <h3>{currentQuestion.title}</h3>
-                  <p>{currentQuestion.note}</p>
-                  <div className="option-grid">
-                    {currentQuestion.options.map(([value, label, detail]) => (
-                      <button
-                        className={currentValue === value ? "option selected" : "option"}
-                        key={value}
-                        onClick={() =>
-                          selectAnswer(
-                            currentQuestion.key as keyof AdvisorAnswers,
-                            value,
-                          )
-                        }
-                        type="button"
-                      >
-                        <span className="option-radio">
-                          {currentValue === value && <Check size={15} />}
-                        </span>
-                        <span>
-                          <strong>{label}</strong>
-                          <small>{detail}</small>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="advisor-actions">
-                  <button
-                    className="text-button"
-                    disabled={advisorStep === 0}
-                    onClick={() => setAdvisorStep((step) => Math.max(0, step - 1))}
-                    type="button"
-                  >
-                    Quay lại
-                  </button>
-                  <button
-                    className="primary-button"
-                    disabled={!currentValue}
-                    onClick={nextStep}
-                    type="button"
-                  >
-                    {advisorStep === questions.length - 1
-                      ? "Xem gợi ý"
-                      : "Tiếp tục"}
-                    <ArrowRight size={18} />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="result-wrap">
-                <div className="result-header">
-                  <div className={`result-product-icon ${product.color}`}>
-                    {recommendation.product === "speakwell" && <Headphones />}
-                    {recommendation.product === "easypass" && <BookOpenText />}
-                    {recommendation.product === "easyielts" && <GraduationCap />}
-                  </div>
-                  <div>
-                    <span>{recommendation.label} · {recommendation.stage}</span>
-                    <h3>{recommendation.title}</h3>
-                    <p>{recommendation.summary}</p>
-                  </div>
-                  <button
-                    className="restart-button"
-                    onClick={resetAdvisor}
-                    type="button"
-                  >
-                    Làm lại
-                  </button>
-                </div>
-
-                <div className="result-grid">
-                  <article className="result-panel">
-                    <h4>
-                      <Target size={18} /> Vì sao đề xuất?
-                    </h4>
-                    <ul>
-                      {recommendation.reasons.map((reason) => (
-                        <li key={reason}>
-                          <Check size={16} />
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                  <article className="result-panel warning">
-                    <h4>
-                      <CircleHelp size={18} /> Cần kiểm tra thêm
-                    </h4>
-                    <ul>
-                      {recommendation.checks.map((check) => (
-                        <li key={check}>
-                          <Info size={16} />
-                          <span>{check}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                </div>
-
-                <article className={`recommended-product ${product.color}`}>
-                  <div>
-                    <small>Chương trình gợi ý</small>
-                    <h4>{product.name}</h4>
-                    <p>{product.promise}</p>
-                  </div>
-                  <div className="product-facts">
-                    <span>
-                      <small>Đối tượng</small>
-                      <strong>{product.audience}</strong>
-                    </span>
-                    <span>
-                      <small>Lộ trình</small>
-                      <strong>{product.level}</strong>
-                    </span>
-                  </div>
-                </article>
-
-                {recommendation.secondary && (
-                  <div className="secondary-direction">
-                    <Route size={18} />
-                    {recommendation.secondary}
-                  </div>
-                )}
-
-                <div className="result-lower-grid">
-                  <article className="followup-box">
-                    <h4>3 câu hỏi Đại sứ nên hỏi tiếp</h4>
-                    <ol>
-                      {recommendation.questions.map((question) => (
-                        <li key={question}>{question}</li>
-                      ))}
-                    </ol>
-                  </article>
-                  <article className="script-box">
-                    <div className="script-box-head">
-                      <h4>Tin nhắn gợi ý cho phụ huynh</h4>
-                      <CopyButton text={recommendation.script} compact />
-                    </div>
-                    <p>{recommendation.script}</p>
-                  </article>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="content-section products-section" id="products">
-        <div className="section-shell">
-          <div className="section-heading split-heading">
-            <div>
-              <span className="section-kicker">Thư viện sản phẩm</span>
-              <h2>Chọn theo nhu cầu, không chọn theo tên khóa học</h2>
-            </div>
-            <p>
-              Mỗi chương trình có một vai trò riêng trên hành trình. Hãy dùng
-              phần “không nên tư vấn khi” để tránh ghép sai nhu cầu.
-            </p>
-          </div>
-
-          <div className="product-grid">
-            <article className="product-card green-product">
-              <div className="product-card-top">
-                <span className="product-card-icon">
-                  <Headphones />
-                </span>
-                <div>
-                  <small>Cambridge Young Learners</small>
-                  <h3>SpeakWell</h3>
-                </div>
-              </div>
-              <p className="product-lead">
-                Chương trình tiếng Anh trực tuyến toàn diện cho trẻ 4–12 tuổi,
-                định hướng Cambridge YLE.
-              </p>
-              <dl>
-                <div>
-                  <dt>Đối tượng</dt>
-                  <dd>Trẻ cần xây nền tảng hoặc đi theo Beginners → Flyers.</dd>
-                </div>
-                <div>
-                  <dt>Giá trị cốt lõi</dt>
-                  <dd>Bốn kỹ năng, phương pháp 7E, học liệu tương tác, LMS và luyện nói.</dd>
-                </div>
-                <div>
-                  <dt>Nên tư vấn khi</dt>
-                  <dd>Phụ huynh quan tâm nền tảng, giao tiếp và chứng chỉ Cambridge.</dd>
-                </div>
-              </dl>
-              <div className="avoid-box">
-                <strong>Không nên tư vấn khi</strong>
-                <p>Học sinh lớn hơn, đã qua A2 và cần chương trình Teens hoặc mục tiêu IELTS rõ.</p>
-              </div>
-            </article>
-
-            <article className="product-card blue-product">
-              <div className="product-card-top">
-                <span className="product-card-icon">
-                  <BookOpenText />
-                </span>
-                <div>
-                  <small>General English</small>
-                  <h3>Easy PASS</h3>
-                </div>
-              </div>
-              <p className="product-lead">
-                Chương trình tiếng Anh toàn diện cho học sinh 12–18 tuổi, từ A1
-                đến B2.
-              </p>
-              <dl>
-                <div>
-                  <dt>Đối tượng</dt>
-                  <dd>Tuổi Teens cần củng cố bốn kỹ năng và hỗ trợ học tập.</dd>
-                </div>
-                <div>
-                  <dt>Giá trị cốt lõi</dt>
-                  <dd>7E, học theo tình huống, LMS và đánh giá tiến bộ định kỳ.</dd>
-                </div>
-                <div>
-                  <dt>Nên tư vấn khi</dt>
-                  <dd>Mục tiêu là nền tảng, học trên trường, giao tiếp hoặc cầu nối tới IELTS.</dd>
-                </div>
-              </dl>
-              <div className="avoid-box">
-                <strong>Không nên tư vấn khi</strong>
-                <p>Học sinh đã có nền tảng phù hợp, band mục tiêu và thời hạn thi IELTS rõ.</p>
-              </div>
-            </article>
-
-            <article className="product-card pink-product">
-              <div className="product-card-top">
-                <span className="product-card-icon">
-                  <GraduationCap />
-                </span>
-                <div>
-                  <small>IELTS & đại học</small>
-                  <h3>Easy IELTS</h3>
-                </div>
-              </div>
-              <p className="product-lead">
-                Lộ trình luyện thi IELTS cá nhân hóa theo năng lực và mục tiêu
-                band.
-              </p>
-              <dl>
-                <div>
-                  <dt>Đối tượng</dt>
-                  <dd>Học sinh từ 12 tuổi có nền tảng và mục tiêu IELTS cụ thể.</dd>
-                </div>
-                <div>
-                  <dt>Giá trị cốt lõi</dt>
-                  <dd>Introduction → Master, lớp live trên ICAN Learning Platform và tự luyện.</dd>
-                </div>
-                <div>
-                  <dt>Nên tư vấn khi</dt>
-                  <dd>Có band mục tiêu, thời điểm cần chứng chỉ và khả năng duy trì lộ trình.</dd>
-                </div>
-              </dl>
-              <div className="avoid-box">
-                <strong>Không nên tư vấn khi</strong>
-                <p>Chỉ chọn vì “IELTS đang cần” nhưng chưa rõ nền tảng, mục tiêu hoặc thời gian sử dụng.</p>
-              </div>
-            </article>
-          </div>
-
-          <div className="source-note">
-            <Info size={18} />
-            <span>
-              Thông tin học phí, ưu đãi, lịch khai giảng và cấu hình lớp có thể
-              thay đổi. Đại sứ cần kiểm tra thông báo vận hành mới nhất trước
-              khi chốt với phụ huynh.
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <section className="content-section scripts-section" id="scripts">
-        <div className="section-shell">
-          <div className="section-heading centered-heading">
-            <span className="section-kicker">Kịch bản dùng ngay</span>
-            <h2>Nói đúng trọng tâm, giữ giọng tư vấn tự nhiên</h2>
-            <p>
-              Chọn tình huống, điều chỉnh tên và bối cảnh học sinh, sau đó sao
-              chép để gửi phụ huynh.
-            </p>
-          </div>
-
-          <div className="script-workspace">
-            <div className="script-tabs" role="tablist" aria-label="Tình huống tư vấn">
-              {scripts.map((script) => (
-                <button
-                  aria-selected={activeScript === script.id}
-                  className={activeScript === script.id ? "active" : ""}
-                  key={script.id}
-                  onClick={() => setActiveScript(script.id)}
-                  role="tab"
-                  type="button"
-                >
-                  {script.label}
-                  <ChevronRight size={17} />
-                </button>
-              ))}
-            </div>
-            <article className="script-preview">
-              <div className="script-preview-top">
-                <div className="zalo-avatar">GE</div>
-                <div>
-                  <small>Kịch bản đề xuất</small>
-                  <h3>{activeScriptData.title}</h3>
-                </div>
-              </div>
-              <div className="message-bubble">{activeScriptData.text}</div>
-              <div className="script-preview-footer">
-                <span>
-                  <Info size={16} />
-                  Cá nhân hóa trước khi gửi
-                </span>
-                <CopyButton text={activeScriptData.text} />
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="content-section faq-section" id="faq">
-        <div className="section-shell faq-shell">
-          <div className="faq-intro">
-            <span className="section-kicker">Xử lý phản đối</span>
-            <h2>Giải thích bằng logic học tập, không tranh luận với phụ huynh</h2>
-            <p>
-              Bắt đầu từ mối quan tâm của gia đình, làm rõ dữ liệu còn thiếu rồi
-              mới đưa ra đề xuất.
-            </p>
-            <div className="faq-principle">
-              <Lightbulb size={20} />
-              <span>
-                Công thức: <strong>Ghi nhận → Làm rõ → Giải thích → Đề xuất bước tiếp theo</strong>
-              </span>
-            </div>
-          </div>
-          <div className="faq-list">
-            {faqs.map((faq, index) => (
-              <details key={faq.q} open={index === 0}>
-                <summary>
-                  <span>{faq.q}</span>
-                  <span className="faq-plus">+</span>
-                </summary>
-                <p>{faq.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Pathway />
+      <Advisor />
+      <ProductLibrary />
+      <ScriptLibrary />
+      <ObjectionLibrary />
 
       <footer>
         <div className="section-shell footer-inner">
-          <BrandMark />
+          <Brand />
           <div className="footer-copy">
             <strong>Sổ tay tư vấn lộ trình tiếng Anh</strong>
             <span>Dành cho Đại sứ Galaxy Education · Cập nhật 23/07/2026</span>
           </div>
           <button
             className="footer-button"
-            onClick={() => scrollTo("top")}
             type="button"
+            onClick={() => go("top")}
           >
-            Về đầu trang
-            <ArrowRight size={17} />
+            Về đầu trang ↑
           </button>
         </div>
       </footer>
