@@ -28,6 +28,11 @@ type AdvisorRecommendation = {
   summary: string;
   eligibility: string[];
   rationale: string[];
+  fitAnalysis: {
+    angle: string;
+    status: "Phù hợp" | "Cần xác minh" | "Cần điều chỉnh";
+    explanation: string;
+  }[];
   missing: string[];
   actions: string[];
 };
@@ -747,6 +752,7 @@ function buildAdvisorRecommendation(
       `Mục tiêu: ${optionLabel("goal", goal)}.`,
     ],
     rationale,
+    fitAnalysis: [],
     missing,
     actions,
   });
@@ -836,6 +842,49 @@ function buildAdvisorRecommendation(
           : "Gia đình ưu tiên năng lực tổng quát/giao tiếp ở độ tuổi tiểu học.",
         "SpeakWell phát triển đồng thời 4 kỹ năng và định hướng Cambridge YLE theo lộ trình.",
       ],
+      fitAnalysis: [
+        {
+          angle: "Độ tuổi & giai đoạn phát triển",
+          status: "Phù hợp",
+          explanation:
+            "Con đang ở nhóm 7-11 tuổi, đúng giai đoạn SpeakWell được thiết kế để xây nền ngôn ngữ, phản xạ và sự tự tin trước khi chuyển sang lộ trình Teens.",
+        },
+        {
+          angle: "Nền tảng hiện tại",
+          status:
+            levelUnknown || lowEvidence ? "Cần xác minh" : "Phù hợp",
+          explanation:
+            levelUnknown || lowEvidence
+              ? "Trình độ đang dựa trên dữ liệu chưa đủ tin cậy; cần đánh giá đầu vào để chọn đúng Beginners, Starters, Movers hoặc Flyers."
+              : `Mức ${optionLabel("level", level)} nằm trong phạm vi Beginners-Flyers/A2 mà SpeakWell phát triển.`,
+        },
+        {
+          angle: "Mục tiêu học tập",
+          status: "Phù hợp",
+          explanation:
+            goal === "cambridge"
+              ? `Lộ trình Cambridge YLE của SpeakWell đi đúng cột mốc gia đình đang hướng tới: ${optionLabel("cambridgeTarget", answers.cambridgeTarget)}.`
+              : "SpeakWell phù hợp vì gia đình đang ưu tiên năng lực 4 kỹ năng và giao tiếp phù hợp lứa tuổi, thay vì luyện thi học thuật sớm.",
+        },
+        {
+          angle: "Phương pháp & trải nghiệm học",
+          status: "Phù hợp",
+          explanation:
+            "Chương trình kết hợp lớp giáo viên, học liệu tương tác, LMS và công cụ AI, phù hợp với nhu cầu vừa được hướng dẫn vừa có môi trường thực hành thường xuyên.",
+        },
+        {
+          angle: "Thời hạn & khả năng duy trì",
+          status:
+            lowCapacity || capacity === "unknown"
+              ? "Cần điều chỉnh"
+              : "Phù hợp",
+          explanation: lowCapacity
+            ? "Quỹ học dưới 2 giờ/tuần chưa tương xứng với mục tiêu; cần giảm kỳ vọng đầu ra hoặc kéo dài thời gian."
+            : capacity === "unknown"
+              ? "Gia đình chưa xác định được quỹ học hằng tuần; cần chốt lịch trước khi cam kết tiến độ."
+              : `Quỹ học ${optionLabel("capacity", capacity).toLowerCase()} tạo điều kiện để duy trì lộ trình đều đặn; thời hạn ${optionLabel("timeline", timeline).toLowerCase()}.`,
+        },
+      ],
       missing: commonMissing,
       actions: [
         "Đánh giá đầu vào để chọn đúng Beginners/Starters/Movers/Flyers.",
@@ -912,6 +961,59 @@ function buildAdvisorRecommendation(
         `Thời hạn: ${optionLabel("timeline", timeline)}; khả năng duy trì: ${optionLabel("capacity", capacity)}.`,
         "Easy IELTS có lộ trình từ 2.0-2.5 đến 7.0+, không mặc định yêu cầu B1 mới được bắt đầu.",
       ],
+      fitAnalysis: [
+        {
+          angle: "Độ tuổi & định hướng",
+          status: "Phù hợp",
+          explanation:
+            "Người học từ 12 tuổi, đạt điều kiện độ tuổi và đã có mục tiêu IELTS thực sự thay vì chỉ chọn chứng chỉ theo xu hướng.",
+        },
+        {
+          angle: "Khoảng cách band",
+          status:
+            answers.ieltsCurrent === "none" ||
+            answers.ieltsTarget === "not-sure"
+              ? "Cần xác minh"
+              : "Phù hợp",
+          explanation:
+            answers.ieltsCurrent === "none"
+              ? "Chưa có band đầu vào đáng tin cậy nên chưa thể xác định chặng học; Easy IELTS phù hợp về hướng nhưng cần placement test trước."
+              : answers.ieltsTarget === "not-sure"
+                ? `Đã có band hiện tại ${optionLabel("ieltsCurrent", answers.ieltsCurrent)}, nhưng cần xác định band đích theo yêu cầu trường hoặc chương trình.`
+                : `Band hiện tại ${optionLabel("ieltsCurrent", answers.ieltsCurrent)} và mục tiêu ${optionLabel("ieltsTarget", answers.ieltsTarget)} có thể được đối chiếu với lộ trình Easy IELTS từ 2.0-2.5 đến 7.0+.`,
+        },
+        {
+          angle: "Mục tiêu năng lực",
+          status: "Phù hợp",
+          explanation:
+            "Easy IELTS không chỉ luyện dạng bài mà phát triển đồng thời năng lực ngôn ngữ, tư duy học thuật và chiến lược theo tiêu chí chấm, phù hợp với mục tiêu sử dụng IELTS dài hạn.",
+        },
+        {
+          angle: "Điểm nghẽn kỹ năng",
+          status:
+            answers.weakestSkill === "unknown"
+              ? "Cần xác minh"
+              : "Phù hợp",
+          explanation:
+            answers.weakestSkill === "unknown"
+              ? "Chưa xác định kỹ năng thấp nhất; cần chẩn đoán đủ 4 kỹ năng để phân bổ thời lượng và phản hồi đúng trọng tâm."
+              : `Đã xác định ${optionLabel("weakestSkill", answers.weakestSkill)} là kỹ năng cần ưu tiên, giúp cá nhân hóa trọng tâm học và mốc kiểm tra tiến bộ.`,
+        },
+        {
+          angle: "Thời hạn & cường độ học",
+          status:
+            lowCapacity || timeline === "under-6" || capacity === "unknown"
+              ? "Cần điều chỉnh"
+              : "Phù hợp",
+          explanation: lowCapacity
+            ? "Quỹ học dưới 2 giờ/tuần khó đáp ứng mục tiêu tăng band; cần tăng thời lượng, kéo dài thời hạn hoặc điều chỉnh band đích."
+            : timeline === "under-6"
+              ? `Thời hạn dưới 6 tháng cần được kiểm tra chặt theo khoảng cách từ ${optionLabel("ieltsCurrent", answers.ieltsCurrent)} đến ${optionLabel("ieltsTarget", answers.ieltsTarget)} trước khi cam kết.`
+              : capacity === "unknown"
+                ? "Chưa có quỹ thời gian học ổn định nên chưa thể kết luận tính khả thi của tiến độ."
+                : `Thời hạn ${optionLabel("timeline", timeline).toLowerCase()} cùng quỹ học ${optionLabel("capacity", capacity).toLowerCase()} tạo nền tảng khả thi để thiết kế lộ trình theo chặng.`,
+        },
+      ],
       missing: ieltsMissing,
       actions: [
         "Thực hiện hoặc xác minh bài đánh giá đầu vào theo 4 kỹ năng.",
@@ -954,6 +1056,43 @@ function buildAdvisorRecommendation(
         "Mục tiêu Cambridge YLE phù hợp với lộ trình Beginners-Flyers/A2.",
         "Tuổi 12 là giao điểm giữa SpeakWell và Easy PASS nên mục tiêu, không chỉ tuổi, quyết định hướng đi.",
       ],
+      fitAnalysis: [
+        {
+          angle: "Độ tuổi",
+          status: "Cần xác minh",
+          explanation:
+            "Con vẫn nằm trong giới hạn SpeakWell nhưng đã ở mốc 12 tuổi, là điểm chuyển tiếp sang chương trình Teens; cần cân nhắc cả thời gian hoàn thành chặng YLE.",
+        },
+        {
+          angle: "Nền tảng hiện tại",
+          status:
+            levelUnknown || lowEvidence ? "Cần xác minh" : "Phù hợp",
+          explanation:
+            levelUnknown || lowEvidence
+              ? "Cần đánh giá đầu vào để chắc chắn con còn nằm trong lộ trình Beginners-Flyers/A2."
+              : `Mức ${optionLabel("level", level)} vẫn nằm trong phạm vi năng lực SpeakWell phục vụ.`,
+        },
+        {
+          angle: "Mục tiêu chứng chỉ",
+          status: "Phù hợp",
+          explanation: `Gia đình đang hướng tới ${optionLabel("cambridgeTarget", answers.cambridgeTarget)}, phù hợp trực tiếp với lộ trình Cambridge YLE của SpeakWell.`,
+        },
+        {
+          angle: "Khả năng hoàn thành lộ trình",
+          status:
+            lowCapacity || timeline === "under-6" || capacity === "unknown"
+              ? "Cần điều chỉnh"
+              : "Phù hợp",
+          explanation:
+            "Cần đối chiếu cấp độ hiện tại, cấp độ đích, thời hạn và quỹ học để tránh chọn SpeakWell khi con sắp cần chuyển sang General English hoặc IELTS.",
+        },
+        {
+          angle: "Hướng chuyển tiếp",
+          status: "Cần xác minh",
+          explanation:
+            "Gia đình cần thống nhất trước hướng đi sau Flyers/A2: Easy PASS nếu ưu tiên General English, hoặc Easy IELTS khi đã có mục tiêu band và thời hạn rõ.",
+        },
+      ],
       missing: commonMissing,
       actions: [
         "Đánh giá đầu vào và kiểm tra tính khả thi của cấp độ Cambridge mục tiêu.",
@@ -992,6 +1131,49 @@ function buildAdvisorRecommendation(
       rationale: [
         "Easy PASS phát triển đồng đều 4 kỹ năng và tạo cầu nối từ A1 đến B2 cho tuổi Teens.",
         `Khả năng duy trì: ${optionLabel("capacity", capacity)}.`,
+      ],
+      fitAnalysis: [
+        {
+          angle: "Độ tuổi & bối cảnh học tập",
+          status: "Phù hợp",
+          explanation:
+            "Học sinh 12-18 tuổi, đúng nhóm Teens mà Easy PASS thiết kế để hỗ trợ tiếng Anh trên trường, giao tiếp và năng lực hội nhập.",
+        },
+        {
+          angle: "Nền tảng hiện tại",
+          status:
+            levelUnknown || lowEvidence ? "Cần xác minh" : "Phù hợp",
+          explanation:
+            levelUnknown || lowEvidence
+              ? "Cần đánh giá đầu vào để xác định đúng chặng A1-B2 và tránh xếp lớp theo cảm nhận."
+              : `Trình độ ${optionLabel("level", level)} nằm trong lộ trình A1-B2 của Easy PASS.`,
+        },
+        {
+          angle: "Mục tiêu học tập",
+          status: "Phù hợp",
+          explanation:
+            goal === "communication"
+              ? "Gia đình ưu tiên giao tiếp và phản xạ; Easy PASS phát triển năng lực sử dụng tiếng Anh trong tình huống thực tế thay vì tập trung vào một bài thi."
+              : "Gia đình ưu tiên tiếng Anh tổng quát và việc học trên trường; Easy PASS phát triển đồng đều Nghe, Nói, Đọc, Viết theo CEFR.",
+        },
+        {
+          angle: "Vai trò trong lộ trình dài hạn",
+          status: "Phù hợp",
+          explanation:
+            "Chương trình tạo cầu nối từ nền tảng YLE sang năng lực Teens A1-B2, giúp học sinh xây nền vững trước khi lựa chọn IELTS hoặc mục tiêu học thuật khác.",
+        },
+        {
+          angle: "Thời hạn & khả năng duy trì",
+          status:
+            lowCapacity || capacity === "unknown"
+              ? "Cần điều chỉnh"
+              : "Phù hợp",
+          explanation: lowCapacity
+            ? "Quỹ học dưới 2 giờ/tuần cần đi kèm mục tiêu hẹp hơn hoặc thời hạn dài hơn để bảo đảm tiến bộ thực chất."
+            : capacity === "unknown"
+              ? "Cần chốt quỹ thời gian học và tự luyện trước khi đưa ra cam kết tiến độ."
+              : `Quỹ học ${optionLabel("capacity", capacity).toLowerCase()} phù hợp để duy trì lộ trình; thời hạn ${optionLabel("timeline", timeline).toLowerCase()}.`,
+        },
       ],
       missing: commonMissing,
       actions: [
@@ -1311,6 +1493,45 @@ function Advisor({ onNavigate }: { onNavigate: (view: View) => void }) {
                     12 tuổi
                   </span>
                 </div>
+
+                {recommendation.fitAnalysis.length > 0 && (
+                  <section className="fit-analysis">
+                    <div className="fit-analysis-heading">
+                      <div>
+                        <span>Vì sao đề xuất chương trình này?</span>
+                        <h4>
+                          Mức độ phù hợp được nhìn từ nhiều góc độ, không chỉ từ
+                          một mục tiêu đơn lẻ
+                        </h4>
+                      </div>
+                      <p>
+                        Các đánh giá dưới đây được tạo từ chính hồ sơ vừa khai
+                        báo. “Cần xác minh” hoặc “Cần điều chỉnh” là điều kiện
+                        Đại sứ phải xử lý trước khi chốt.
+                      </p>
+                    </div>
+                    <div className="fit-analysis-grid">
+                      {recommendation.fitAnalysis.map((item) => (
+                        <article
+                          className={`fit-item ${
+                            item.status === "Phù hợp"
+                              ? "fit-good"
+                              : item.status === "Cần xác minh"
+                                ? "fit-check"
+                                : "fit-adjust"
+                          }`}
+                          key={item.angle}
+                        >
+                          <div>
+                            <strong>{item.angle}</strong>
+                            <span>{item.status}</span>
+                          </div>
+                          <p>{item.explanation}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
                 <div className="result-panels">
                   <section className="recommendation-panel">

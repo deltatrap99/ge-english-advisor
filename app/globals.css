@@ -470,6 +470,120 @@ input {
   text-align: right;
 }
 
+.fit-analysis {
+  margin: 0 0 16px;
+  padding: 22px;
+  border: 1px solid #cfe2ef;
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(232, 245, 253, 0.9), rgba(255, 255, 255, 0.98));
+}
+
+.fit-analysis-heading {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: end;
+  gap: 32px;
+  margin-bottom: 18px;
+}
+
+.fit-analysis-heading span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--royal-blue);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.fit-analysis-heading h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.fit-analysis-heading p {
+  margin: 0;
+  color: #60798b;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.fit-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fit-item {
+  padding: 15px;
+  border: 1px solid #dbe8ef;
+  border-left-width: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.fit-item:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.fit-item > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.fit-item strong {
+  color: #173958;
+  font-size: 12px;
+}
+
+.fit-item span {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.fit-item p {
+  margin: 0;
+  color: #526b7d;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.fit-item.fit-good {
+  border-left-color: #7eb832;
+}
+
+.fit-item.fit-good span {
+  background: #eaf5dc;
+  color: #56821c;
+}
+
+.fit-item.fit-check {
+  border-left-color: #d7a900;
+}
+
+.fit-item.fit-check span {
+  background: #fff4c9;
+  color: #846600;
+}
+
+.fit-item.fit-adjust {
+  border-left-color: #e26d35;
+}
+
+.fit-item.fit-adjust span {
+  background: #ffeadf;
+  color: #a4451c;
+}
+
 .result-panels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1041,9 +1155,15 @@ input {
   .level-detail,
   .result-grid,
   .result-panels,
+  .fit-analysis-grid,
+  .fit-analysis-heading,
   .objection-header,
   .objection-grid {
     grid-template-columns: 1fr;
+  }
+
+  .fit-item:last-child:nth-child(odd) {
+    grid-column: auto;
   }
 
   .route-line {
@@ -1211,6 +1331,18 @@ input {
 
   .advisor-guardrail span {
     text-align: left;
+  }
+
+  .fit-analysis {
+    padding: 17px;
+  }
+
+  .fit-analysis-heading {
+    gap: 12px;
+  }
+
+  .fit-item > div {
+    align-items: flex-start;
   }
 
   .result-actions button {
