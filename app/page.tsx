@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Tone = "green" | "blue" | "pink";
-type View = "home" | "pathway" | "advisor" | "products" | "scripts" | "faq";
+type View =
+  | "home"
+  | "pathway"
+  | "advisor"
+  | "products"
+  | "scripts"
+  | "exams";
 type JourneyLevel = {
   id: string;
   label: string;
@@ -1739,6 +1745,7 @@ function CopyButton({ text }: { text: string }) {
 
 function ScriptLibrary() {
   const groups = [...new Set(scripts.map((script) => script.group))];
+  const [mode, setMode] = useState<"scripts" | "objections">("scripts");
   const [group, setGroup] = useState(groups[0]);
   const available = scripts.filter((script) => script.group === group);
   const [title, setTitle] = useState(available[0].title);
@@ -1755,13 +1762,34 @@ function ScriptLibrary() {
       <div className="section-shell">
         <div className="section-heading centered-heading reveal">
           <span className="section-kicker">Kịch bản dùng ngay</span>
-          <h2>Từ khai thác nhu cầu, thuyết phục đến chốt bước tiếp theo</h2>
+          <h2>Kịch bản tư vấn và xử lý phản đối trong cùng một thư viện</h2>
           <p>
             Nội dung giữ vai trò tư vấn, có căn cứ và tôn trọng quyền quyết định
             của phụ huynh. Hãy cá nhân hóa trước khi gửi.
           </p>
         </div>
-        <div className="script-library reveal">
+        <div className="script-mode-tabs reveal" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "scripts"}
+            className={mode === "scripts" ? "active" : ""}
+            onClick={() => setMode("scripts")}
+          >
+            Kịch bản tư vấn
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "objections"}
+            className={mode === "objections" ? "active" : ""}
+            onClick={() => setMode("objections")}
+          >
+            Xử lý phản đối
+          </button>
+        </div>
+        {mode === "scripts" ? (
+          <div className="script-library reveal">
           <div className="script-groups" role="tablist">
             {groups.map((item) => (
               <button
@@ -1805,20 +1833,22 @@ function ScriptLibrary() {
               </div>
             </article>
           </div>
-        </div>
+          </div>
+        ) : (
+          <ObjectionPanel />
+        )}
       </div>
     </section>
   );
 }
 
-function ObjectionLibrary() {
+function ObjectionPanel() {
   const [query, setQuery] = useState("");
   const filtered = objections.filter((item) =>
     `${item.q} ${item.answer}`.toLowerCase().includes(query.toLowerCase()),
   );
   return (
-    <section className="content-section faq-section" id="faq">
-      <div className="section-shell">
+    <div className="objection-panel">
         <div className="objection-header reveal">
           <div className="faq-intro">
             <span className="section-kicker">Xử lý phản đối</span>
@@ -1868,6 +1898,289 @@ function ObjectionLibrary() {
             </div>
           )}
         </div>
+    </div>
+  );
+}
+
+function ExamOverview() {
+  const [exam, setExam] = useState<"ielts" | "yle">("ielts");
+
+  return (
+    <section className="content-section exams-section" id="exams">
+      <div className="section-shell">
+        <div className="section-heading centered-heading reveal">
+          <span className="section-kicker">Kiến thức nền dành cho Đại sứ</span>
+          <h2>Tổng quan các Kỳ thi</h2>
+          <p>
+            Hiểu đúng mục đích, cấu trúc và cách đọc kết quả trước khi tư vấn
+            lộ trình học. Thông tin được đối chiếu với nguồn chính thức của
+            IELTS và Cambridge English.
+          </p>
+        </div>
+
+        <div className="exam-switcher reveal" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={exam === "ielts"}
+            className={exam === "ielts" ? "active ielts" : ""}
+            onClick={() => setExam("ielts")}
+          >
+            <span>IELTS</span>
+            <small>Học thuật · Đại học · Du học · Nghề nghiệp</small>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={exam === "yle"}
+            className={exam === "yle" ? "active yle" : ""}
+            onClick={() => setExam("yle")}
+          >
+            <span>YLE Cambridge</span>
+            <small>Pre A1 Starters · A1 Movers · A2 Flyers</small>
+          </button>
+        </div>
+
+        {exam === "ielts" ? (
+          <article className="exam-dossier ielts reveal" key="ielts">
+            <header className="exam-hero">
+              <div>
+                <span className="exam-label">International English Language Testing System</span>
+                <h3>IELTS đánh giá khả năng sử dụng tiếng Anh trong học tập, công việc và hội nhập</h3>
+                <p>
+                  Bài thi đánh giá độc lập bốn kỹ năng Nghe, Đọc, Viết và Nói.
+                  Kết quả không chỉ có điểm Overall mà còn có band riêng cho
+                  từng kỹ năng, vì vậy cần đọc cả hồ sơ điểm thay vì chỉ nhìn
+                  một con số tổng.
+                </p>
+              </div>
+              <div className="exam-fact-stack">
+                <div><strong>4</strong><span>kỹ năng</span></div>
+                <div><strong>0–9</strong><span>thang band</span></div>
+                <div><strong>2h45</strong><span>IELTS Academic</span></div>
+              </div>
+            </header>
+
+            <div className="exam-section-grid">
+              <section className="exam-card">
+                <span className="card-number">01</span>
+                <h4>Các loại bài thi</h4>
+                <div className="exam-comparison">
+                  <div>
+                    <strong>IELTS Academic</strong>
+                    <p>
+                      Phù hợp với mục tiêu đại học, sau đại học và một số yêu
+                      cầu đăng ký hành nghề. Nội dung Reading và Writing mang
+                      tính học thuật cao hơn.
+                    </p>
+                  </div>
+                  <div>
+                    <strong>IELTS General Training</strong>
+                    <p>
+                      Phù hợp với mục tiêu di trú, đào tạo hoặc học dưới bậc
+                      đại học và các bối cảnh xã hội, công việc thường ngày.
+                    </p>
+                  </div>
+                </div>
+                <p className="exam-note">
+                  Listening và Speaking giống nhau ở hai loại; Reading và
+                  Writing khác nhau. Luôn kiểm tra yêu cầu của trường, chương
+                  trình hoặc quốc gia trước khi chọn bài thi.
+                </p>
+              </section>
+
+              <section className="exam-card">
+                <span className="card-number">02</span>
+                <h4>Cấu trúc IELTS Academic</h4>
+                <div className="skill-table">
+                  <div><strong>Listening</strong><span>Khoảng 30 phút</span><small>40 câu hỏi · nghe hiểu ý chính, chi tiết và thái độ người nói</small></div>
+                  <div><strong>Reading</strong><span>60 phút</span><small>40 câu hỏi · đọc hiểu, xác định luận điểm và xử lý văn bản học thuật</small></div>
+                  <div><strong>Writing</strong><span>60 phút</span><small>2 tasks · mô tả thông tin trực quan và viết bài nghị luận</small></div>
+                  <div><strong>Speaking</strong><span>11–14 phút</span><small>3 phần · phỏng vấn trực tiếp, trình bày và thảo luận</small></div>
+                </div>
+              </section>
+
+              <section className="exam-card">
+                <span className="card-number">03</span>
+                <h4>Cách tính và đọc điểm</h4>
+                <p>
+                  Mỗi kỹ năng nhận band từ 0 đến 9 theo bước 0.5. Overall là
+                  trung bình của bốn kỹ năng và được làm tròn theo quy tắc
+                  IELTS. Một Overall giống nhau có thể che giấu hồ sơ kỹ năng
+                  rất khác nhau.
+                </p>
+                <div className="band-grid">
+                  <div><strong>4.0</strong><span>Limited user</span></div>
+                  <div><strong>5.0</strong><span>Modest user</span></div>
+                  <div><strong>6.0</strong><span>Competent user</span></div>
+                  <div><strong>7.0</strong><span>Good user</span></div>
+                  <div><strong>8.0</strong><span>Very good user</span></div>
+                  <div><strong>9.0</strong><span>Expert user</span></div>
+                </div>
+                <p className="exam-note">
+                  IELTS khuyến nghị kết quả được xem là thể hiện năng lực trong
+                  tối đa hai năm; tổ chức tiếp nhận có thể đặt quy định riêng.
+                </p>
+              </section>
+
+              <section className="exam-card">
+                <span className="card-number">04</span>
+                <h4>Giá trị dài hạn ngoài xét tuyển</h4>
+                <ul className="exam-value-list">
+                  <li><strong>Tư duy học thuật:</strong> đọc luận điểm, chọn bằng chứng, tổ chức ý và lập luận có căn cứ.</li>
+                  <li><strong>Sẵn sàng cho đại học:</strong> tiếp cận tài liệu, nghe giảng, viết bài và thuyết trình bằng tiếng Anh.</li>
+                  <li><strong>Du học và hội nhập:</strong> chứng minh năng lực theo yêu cầu của nhiều chương trình quốc tế.</li>
+                  <li><strong>Nghề nghiệp tương lai:</strong> tạo nền để đọc tài liệu chuyên môn và giao tiếp trong môi trường đa quốc gia.</li>
+                </ul>
+              </section>
+            </div>
+
+            <section className="exam-advisor-box">
+              <div>
+                <span>Góc nhìn tư vấn</span>
+                <h4>Khi nào nên hướng học sinh sang IELTS?</h4>
+              </div>
+              <div className="advisor-criteria">
+                <p><strong>Đủ điều kiện:</strong> từ 12 tuổi, có mục tiêu sử dụng tương đối rõ, sẵn sàng đánh giá đầu vào và duy trì học tập.</p>
+                <p><strong>Chưa nên chốt:</strong> chỉ học vì xu hướng, chưa rõ thời điểm dùng chứng chỉ hoặc nền tảng còn cần được củng cố.</p>
+                <p><strong>Liên hệ sản phẩm:</strong> Easy IELTS phù hợp khi có thể xác định band hiện tại, band mục tiêu, thời hạn và kỹ năng nghẽn.</p>
+              </div>
+            </section>
+
+            <div className="official-sources">
+              <strong>Nguồn chính thức:</strong>
+              <a href="https://ielts.org/take-a-test/test-types" target="_blank" rel="noreferrer">Các loại IELTS</a>
+              <a href="https://ielts.org/take-a-test/test-types/ielts-academic-test" target="_blank" rel="noreferrer">Cấu trúc IELTS Academic</a>
+              <a href="https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail" target="_blank" rel="noreferrer">Thang điểm IELTS</a>
+            </div>
+          </article>
+        ) : (
+          <article className="exam-dossier yle reveal" key="yle">
+            <header className="exam-hero">
+              <div>
+                <span className="exam-label">Cambridge English Qualifications for Young Learners</span>
+                <h3>YLE là lộ trình đánh giá tiếng Anh dành cho trẻ em từ Pre A1 đến A2</h3>
+                <p>
+                  Ba kỳ thi Pre A1 Starters, A1 Movers và A2 Flyers đo khả năng
+                  sử dụng tiếng Anh trong các chủ đề quen thuộc. Thiết kế bài
+                  thi hướng tới trải nghiệm tích cực, giúp trẻ nhận ra tiến bộ
+                  và xây sự tự tin thay vì tạo tâm lý đỗ hoặc trượt.
+                </p>
+              </div>
+              <div className="exam-fact-stack">
+                <div><strong>3</strong><span>cấp độ</span></div>
+                <div><strong>3</strong><span>bài thi kỹ năng</span></div>
+                <div><strong>15</strong><span>shields tối đa</span></div>
+              </div>
+            </header>
+
+            <section className="yle-levels">
+              <article>
+                <span>01 · Pre A1</span>
+                <h4>Starters</h4>
+                <p>
+                  Cột mốc đầu tiên: trẻ hiểu chỉ dẫn, câu hỏi và mô tả rất đơn
+                  giản; gọi tên người, đồ vật; viết từ hoặc câu ngắn và trả lời
+                  về thông tin quen thuộc.
+                </p>
+                <small>Khoảng 45 phút · Listening 20&apos; · Reading & Writing 20&apos; · Speaking 3–5&apos;</small>
+              </article>
+              <article>
+                <span>02 · A1</span>
+                <h4>Movers</h4>
+                <p>
+                  Trẻ bắt đầu giao tiếp trong tình huống đời sống quen thuộc,
+                  mô tả người và sự việc, đọc hiểu văn bản ngắn và viết các câu
+                  có kết nối ở mức cơ bản.
+                </p>
+                <small>Khoảng 1 giờ · Listening 25&apos; · Reading & Writing 30&apos; · Speaking 5–7&apos;</small>
+              </article>
+              <article>
+                <span>03 · A2</span>
+                <h4>Flyers</h4>
+                <p>
+                  Trẻ sử dụng tiếng Anh độc lập hơn, theo dõi hội thoại ngắn,
+                  đọc văn bản đơn giản, kể hoặc mô tả có trình tự và viết đoạn
+                  có liên kết.
+                </p>
+                <small>Khoảng 1 giờ 15 phút · Listening 25&apos; · Reading & Writing 40&apos; · Speaking 7–9&apos;</small>
+              </article>
+            </section>
+
+            <div className="exam-section-grid">
+              <section className="exam-card">
+                <span className="card-number">01</span>
+                <h4>Cấu trúc chung</h4>
+                <div className="skill-table yle-table">
+                  <div><strong>Listening</strong><span>Tối đa 5 shields</span><small>Nghe hai lần; xử lý hình ảnh, từ khóa, chỉ dẫn và hội thoại phù hợp cấp độ</small></div>
+                  <div><strong>Reading & Writing</strong><span>Tối đa 5 shields</span><small>Đọc hiểu và tạo lập ngôn ngữ từ mức từ/câu đến văn bản ngắn</small></div>
+                  <div><strong>Speaking</strong><span>Tối đa 5 shields</span><small>Tương tác trực tiếp với giám khảo qua tranh, câu hỏi và nhiệm vụ giao tiếp</small></div>
+                </div>
+              </section>
+
+              <section className="exam-card">
+                <span className="card-number">02</span>
+                <h4>Đọc kết quả bằng Shields</h4>
+                <p>
+                  YLE không có kết quả đỗ hoặc trượt. Mọi trẻ hoàn thành bài thi
+                  đều nhận chứng chỉ và Statement of Results. Mỗi phần thi được
+                  thể hiện từ 1 đến 5 shields.
+                </p>
+                <div className="shield-scale" aria-label="Thang kết quả YLE">
+                  <span>1 shield</span>
+                  <i>●</i><i>●</i><i>●</i><i>●</i><i>●</i>
+                  <span>5 shields</span>
+                </div>
+                <p className="exam-note">
+                  Cambridge cho biết trẻ đạt 4 hoặc 5 shields ở mỗi kỹ năng đã
+                  sẵn sàng bắt đầu chuẩn bị cho cấp độ tiếp theo. Không nên chỉ
+                  cộng tổng shields mà bỏ qua kỹ năng còn yếu.
+                </p>
+              </section>
+
+              <section className="exam-card">
+                <span className="card-number">03</span>
+                <h4>Giá trị của YLE</h4>
+                <ul className="exam-value-list">
+                  <li><strong>Cột mốc vừa sức:</strong> chia hành trình dài thành các bước trẻ có thể đạt được.</li>
+                  <li><strong>Năng lực thực chất:</strong> phát triển đồng thời nghe, nói, đọc và viết trong bối cảnh quen thuộc.</li>
+                  <li><strong>Sự tự tin:</strong> ghi nhận thành quả mà không tạo áp lực đỗ hoặc trượt.</li>
+                  <li><strong>Nền tảng chuyển tiếp:</strong> A2 Flyers tạo nền để phát triển General English B1–B2 trước khi học thuật hóa.</li>
+                </ul>
+              </section>
+
+              <section className="exam-card">
+                <span className="card-number">04</span>
+                <h4>Những hiểu lầm cần tránh</h4>
+                <ul className="exam-value-list warning-list">
+                  <li>Không xếp cấp độ chỉ dựa trên tuổi hoặc lớp đang học.</li>
+                  <li>Không biến YLE thành chuỗi luyện đề và học thuộc từ vựng.</li>
+                  <li>Không mặc định học xong Flyers phải chuyển ngay sang IELTS.</li>
+                  <li>Không dùng tổng shields để che khuất một kỹ năng đang cần củng cố.</li>
+                </ul>
+              </section>
+            </div>
+
+            <section className="exam-advisor-box">
+              <div>
+                <span>Góc nhìn tư vấn</span>
+                <h4>YLE phù hợp với học sinh nào?</h4>
+              </div>
+              <div className="advisor-criteria">
+                <p><strong>Đúng đối tượng:</strong> kỳ thi được thiết kế cho trẻ khoảng 6–12 tuổi; SpeakWell hiện phục vụ học sinh 7–12 tuổi.</p>
+                <p><strong>Đúng mục tiêu:</strong> xây nền bốn kỹ năng, tạo sự tự tin và có cột mốc Cambridge rõ ràng.</p>
+                <p><strong>Liên hệ sản phẩm:</strong> SpeakWell đi theo lộ trình Beginners → Starters → Movers → Flyers; cần đánh giá đầu vào để chọn đúng chặng.</p>
+              </div>
+            </section>
+
+            <div className="official-sources">
+              <strong>Nguồn chính thức:</strong>
+              <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/young-learners/" target="_blank" rel="noreferrer">Tổng quan Young Learners</a>
+              <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/results/young-learners/" target="_blank" rel="noreferrer">Kết quả và Shields</a>
+              <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/young-learners/paper/flyers/format/" target="_blank" rel="noreferrer">Cấu trúc A2 Flyers</a>
+            </div>
+          </article>
+        )}
       </div>
     </section>
   );
@@ -1894,14 +2207,15 @@ export default function Page() {
 
   useEffect(() => {
     const readView = () => {
-      const candidate = window.location.hash.replace("#", "") as View;
+      const hash = window.location.hash.replace("#", "");
+      const candidate = (hash === "faq" ? "scripts" : hash) as View;
       const views: View[] = [
         "home",
         "pathway",
         "advisor",
         "products",
         "scripts",
-        "faq",
+        "exams",
       ];
       setActiveView(views.includes(candidate) ? candidate : "home");
     };
@@ -1939,7 +2253,7 @@ export default function Page() {
               ["advisor", "Gợi ý tư vấn"],
               ["products", "Sản phẩm"],
               ["scripts", "Kịch bản"],
-              ["faq", "Xử lý phản đối"],
+              ["exams", "Tổng quan các Kỳ thi"],
             ].map(([id, label]) => (
               <button
                 className={activeView === id ? "active" : ""}
@@ -2079,7 +2393,7 @@ export default function Page() {
               ["green", "pathway", "↝", "Xem lộ trình", "Khám phá từng trình độ và đặc điểm học sinh."],
               ["pink", "advisor", "◉", "Gợi ý tư vấn", "Phân tuyến có điều kiện trong 2-3 phút."],
               ["blue", "products", "⌕", "Tra cứu sản phẩm", "Lấy key tư vấn, câu hỏi và điểm loại trừ."],
-              ["yellow", "scripts", "☵", "Lấy kịch bản", "Sao chép nội dung khéo léo để dùng trên Zalo."],
+              ["yellow", "scripts", "☵", "Kịch bản & phản đối", "Tra cứu nội dung tư vấn và cách xử lý tình huống."],
             ].map(([color, id, icon, title, text]) => (
               <button
                 className={`quick-card ${color}`}
@@ -2106,7 +2420,7 @@ export default function Page() {
         {activeView === "advisor" && <Advisor onNavigate={go} />}
         {activeView === "products" && <ProductLibrary />}
         {activeView === "scripts" && <ScriptLibrary />}
-        {activeView === "faq" && <ObjectionLibrary />}
+        {activeView === "exams" && <ExamOverview />}
       </div>
 
       <footer>
@@ -2114,7 +2428,7 @@ export default function Page() {
           <Brand />
           <div className="footer-copy">
             <strong>Sổ tay tư vấn lộ trình tiếng Anh</strong>
-            <span>Dành cho Đại sứ Galaxy Education · Cập nhật 23/07/2026</span>
+            <span>Dành cho Đại sứ Galaxy Education · Cập nhật 24/07/2026</span>
           </div>
           <button
             className="footer-button"
